@@ -6177,3 +6177,23 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.loginErrorBox {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fdeeee;
+  color: #a33a3a;
+  border: 1px solid #f0caca;
+  font-weight: 700;
+}
+
+.loginSuccessBox {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #eaf7ed;
+  color: #2f7a46;
+  border: 1px solid #cfead7;
+  font-weight: 700;
+}

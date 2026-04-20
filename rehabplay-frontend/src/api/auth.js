@@ -1,12 +1,29 @@
 import { apiFetch } from "./client";
 
+export async function loginUser(body) {
+  return apiFetch("/api/auth/login/", {
+    method: "POST",
+    body,
+  });
+}
+
+export async function logout() {
+  return apiFetch("/api/auth/logout/", {
+    method: "POST",
+  });
+}
+
+export async function fetchMe() {
+  return apiFetch("/api/auth/me/");
+}
+
 export async function fetchMyProfile() {
   return apiFetch("/api/me/profile/");
 }
 
 export async function updateMyProfile(body) {
   return apiFetch("/api/me/profile/", {
-    method: "PATCH",
+    method: "PUT",
     body,
   });
 }
@@ -17,16 +34,14 @@ export async function fetchMySettings() {
 
 export async function updateMySettings(body) {
   return apiFetch("/api/me/settings/", {
-    method: "PATCH",
+    method: "PUT",
     body,
   });
-}
+} 
 
-export async function logout() {
-  try {
-    return await apiFetch("/admin/logout/", { method: "POST" });
-  } catch (error) {
-    console.warn("Logout admin falhou:", error.message);
-    return null;
-  }
+export async function registerUser(body) {
+  return apiFetch("/api/auth/register/", {
+    method: "POST",
+    body,
+  });
 }
