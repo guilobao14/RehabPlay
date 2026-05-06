@@ -24,6 +24,9 @@ import FamilyDashboardPage from "./pages/family/FamilyDashboardPage";
 import FamilyLinksPage from "./pages/family/FamilyLinksPage";
 import FamilyProgressPage from "./pages/family/FamilyProgressPage";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+import RoleRoute from "./components/RoleRoute";
+
 function Nav() {
   const linkStyle = ({ isActive }) => ({
     marginRight: 12,
@@ -85,7 +88,7 @@ function Nav() {
 
 function PageShell({ children }) {
   return (
-    <div style={{ minHeight: "100vh", background: "#0f1115", color: "white" }}>
+    <div style={{ minHeight: "100vh", background: "transparent", color: "white" }}>
       <Nav />
       <div style={{ width: "100%", margin: 0, padding: 0 }}>{children}</div>
     </div>
@@ -101,149 +104,157 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* páginas com shell */}
-        <Route
-          path="/dashboard"
-          element={
-            <PageShell>
-              <DashboardPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/messages"
-          element={
-            <PageShell>
-              <MessagesPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <PageShell>
-              <NotificationsPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <PageShell>
-              <ProfilePage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <PageShell>
-              <SettingsPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/test"
-          element={
-            <PageShell>
-              <TestApi />
-            </PageShell>
-          }
-        />
+        {/* páginas protegidas para qualquer autenticado */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/dashboard"
+            element={
+              <PageShell>
+                <DashboardPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <PageShell>
+                <MessagesPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <PageShell>
+                <NotificationsPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PageShell>
+                <ProfilePage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PageShell>
+                <SettingsPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/test"
+            element={
+              <PageShell>
+                <TestApi />
+              </PageShell>
+            }
+          />
+        </Route>
 
         {/* PATIENT */}
-        <Route
-          path="/patient/plan"
-          element={
-            <PageShell>
-              <MyPlanPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/patient/progress"
-          element={
-            <PageShell>
-              <ProgressPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/patient/library"
-          element={
-            <PageShell>
-              <LibraryPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/patient/gamification"
-          element={
-            <PageShell>
-              <GamificationPage />
-            </PageShell>
-          }
-        />
+        <Route element={<RoleRoute allow={["PATIENT"]} />}>
+          <Route
+            path="/patient/plan"
+            element={
+              <PageShell>
+                <MyPlanPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/patient/progress"
+            element={
+              <PageShell>
+                <ProgressPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/patient/library"
+            element={
+              <PageShell>
+                <LibraryPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/patient/gamification"
+            element={
+              <PageShell>
+                <GamificationPage />
+              </PageShell>
+            }
+          />
+        </Route>
 
         {/* THERAPIST */}
-        <Route
-          path="/therapist/exercises"
-          element={
-            <PageShell>
-              <ExerciseCrudPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/therapist/media"
-          element={
-            <PageShell>
-              <MediaCrudPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/therapist/plans"
-          element={
-            <PageShell>
-              <PlanManagementPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/therapist/patient-progress"
-          element={
-            <PageShell>
-              <TherapistPatientProgressPage />
-            </PageShell>
-          }
-        />
+        <Route element={<RoleRoute allow={["THERAPIST"]} />}>
+          <Route
+            path="/therapist/exercises"
+            element={
+              <PageShell>
+                <ExerciseCrudPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/therapist/media"
+            element={
+              <PageShell>
+                <MediaCrudPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/therapist/plans"
+            element={
+              <PageShell>
+                <PlanManagementPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/therapist/patient-progress"
+            element={
+              <PageShell>
+                <TherapistPatientProgressPage />
+              </PageShell>
+            }
+          />
+        </Route>
 
         {/* FAMILY */}
-        <Route
-          path="/family"
-          element={
-            <PageShell>
-              <FamilyDashboardPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/family/links"
-          element={
-            <PageShell>
-              <FamilyLinksPage />
-            </PageShell>
-          }
-        />
-        <Route
-          path="/family/progress"
-          element={
-            <PageShell>
-              <FamilyProgressPage />
-            </PageShell>
-          }
-        />
+        <Route element={<RoleRoute allow={["FAMILY"]} />}>
+          <Route
+            path="/family"
+            element={
+              <PageShell>
+                <FamilyDashboardPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/family/links"
+            element={
+              <PageShell>
+                <FamilyLinksPage />
+              </PageShell>
+            }
+          />
+          <Route
+            path="/family/progress"
+            element={
+              <PageShell>
+                <FamilyProgressPage />
+              </PageShell>
+            }
+          />
+        </Route>
 
         <Route path="*" element={<div style={{ padding: 16 }}>404</div>} />
       </Routes>

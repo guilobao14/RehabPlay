@@ -1,15 +1,23 @@
-// src/components/RoleRoute.jsx
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function RoleRoute({ allow = [] }) {
-  const { role } = useAuth();
+  const { role, isAuthed, loading } = useAuth();
 
-  if (!role) return <Navigate to="/login" replace />;
+  if (loading) {
+    return <div style={{ padding: 20 }}>A carregar...</div>;
+  }
+
+  if (!isAuthed) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!role) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (!allow.includes(role)) {
-    // se tiver login mas role errado
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

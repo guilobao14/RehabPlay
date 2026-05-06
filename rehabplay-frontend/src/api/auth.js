@@ -1,5 +1,12 @@
 import { apiFetch } from "./client";
 
+export async function registerUser(body) {
+  return apiFetch("/api/auth/register/", {
+    method: "POST",
+    body,
+  });
+}
+
 export async function loginUser(body) {
   return apiFetch("/api/auth/login/", {
     method: "POST",
@@ -37,11 +44,18 @@ export async function updateMySettings(body) {
     method: "PUT",
     body,
   });
-} 
+}
 
-export async function registerUser(body) {
-  return apiFetch("/api/auth/register/", {
+export async function setup2FA() {
+  return apiFetch("/api/auth/2fa/setup/", {
     method: "POST",
-    body,
+    body: {},
+  });
+}
+
+export async function verify2FA(token) {
+  return apiFetch("/api/auth/2fa/verify/", {
+    method: "POST",
+    body: { token },
   });
 }

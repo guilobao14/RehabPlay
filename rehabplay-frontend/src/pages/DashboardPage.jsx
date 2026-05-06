@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const firstName = displayName.split(" ")[0] || displayName;
 
   const totalExercises = progressEntries.length;
+  const totalPlanItems = plan?.items?.length || 0;
 
   const totalMinutes = useMemo(() => {
     return progressEntries.reduce(
@@ -97,8 +98,6 @@ export default function DashboardPage() {
       (entry) => getWeekLabel(entry.performed_at) === currentWeek
     ).length;
   }, [progressEntries]);
-
-  const totalPlanItems = plan?.items?.length || 0;
 
   const completedPlanItemsCount = useMemo(() => {
     if (!plan?.items?.length || !progressEntries.length) return 0;
@@ -126,6 +125,22 @@ export default function DashboardPage() {
 
   const stats = gamification?.stats || {};
   const badges = gamification?.badges || [];
+  const totalPoints = stats.total_points ?? 0;
+
+  const statusText = plan?.is_active ? "Plano ativo" : "Sem plano ativo";
+  const weeklyState = totalExercises > 0 ? "Boa evolução" : "Sem atividade";
+  const progressMessage =
+    totalPlanItems > 0
+      ? `Tens ${completedPlanItemsCount} exercício(s) do plano com registo.`
+      : "Ainda não tens exercícios ativos para acompanhar.";
+  const weeklyMessage =
+    totalExercises > 0
+      ? "Manténs um ritmo estável esta semana. Continua assim para consolidar a tua evolução."
+      : "Ainda não tens atividade registada esta semana. Completa uma sessão para começares a acompanhar a evolução.";
+  const reminderMessage =
+    unreadNotifications > 0
+      ? "Tens atualizações pendentes. Verifica as notificações e mensagens para não perderes nada importante."
+      : "Está tudo em dia. Continua atento às notificações para acompanhares novas atualizações.";
 
   async function handleLogout() {
     try {
@@ -178,195 +193,282 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="content">
+        <div className="content dashPrimePage">
           {loading && (
-            <div className="dashboardCard">
-              <div className="dashboardCardHeader">
-                <h3 className="dashboardCardTitle">A carregar...</h3>
-              </div>
-              <p className="dashboardSectionSub">
-                A obter os dados reais do teu dashboard.
-              </p>
+            <div className="dashPrimeNotice">
+              <h3>A carregar dashboard...</h3>
+              <p>A obter os dados reais da tua conta.</p>
             </div>
           )}
 
           {error && !loading && (
-            <div className="dashboardCard">
-              <div className="dashboardCardHeader">
-                <h3 className="dashboardCardTitle">Erro</h3>
-              </div>
-              <p className="dashboardSectionSub">{error}</p>
+            <div className="dashPrimeNotice dashPrimeNoticeError">
+              <h3>Erro</h3>
+              <p>{error}</p>
             </div>
           )}
 
           {!loading && !error && (
             <>
-              <div className="dashboardHero">
-                <div>
-                  <h1 className="dashboardTitle">
+              <section className="dashPrimeHero">
+                <div className="dashPrimeHeroLeft">
+                  <div className="dashPrimeHeroTop">
+                    <span className="dashPrimeOverline">Painel principal</span>
+                    <span
+                      className={`dashPrimeStatus ${
+                        plan?.is_active ? "isActive" : "isInactive"
+                      }`}
+                    >
+                      {statusText}
+                    </span>
+                  </div>
+
+                  <h1 className="dashPrimeTitle">
                     Bem-vindo de volta, {firstName}
                   </h1>
-                  <p className="dashboardSubtitle">
+
+                  <p className="dashPrimeSubtitle">
                     Acompanha o teu plano, mantém a consistência e segue a tua
-                    evolução na reabilitação.
+                    evolução com uma visão clara do teu progresso diário e semanal.
                   </p>
+
+                  <div className="dashPrimeKpiRow">
+                    <div className="dashPrimeKpiCard">
+                      <span>Exercícios</span>
+                      <strong>{totalExercises}</strong>
+                    </div>
+
+                    <div className="dashPrimeKpiCard">
+                      <span>Tempo total</span>
+                      <strong>{totalMinutes} min</strong>
+                    </div>
+
+                    <div className="dashPrimeKpiCard">
+                      <span>Notificações</span>
+                      <strong>{unreadNotifications}</strong>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="dashboardHeroBadge">
-                  {plan?.is_active ? "Plano ativo" : "Sem plano ativo"}
+                <div className="dashPrimeHeroRight">
+                  <div className="dashPrimeFocusCard">
+                    <div className="dashPrimeFocusLabel">Foco atual</div>
+                    <div className="dashPrimeFocusValue">
+                      {plan?.title || "Sem plano ativo"}
+                    </div>
+                    <p className="dashPrimeFocusText">
+                      {plan?.is_active
+                        ? "Tens um plano em curso. Mantém o registo das sessões para acompanhar melhor a tua evolução."
+                        : "Ainda não existe um plano ativo associado à tua conta neste momento."}
+                    </p>
+
+                    <div className="dashPrimeFocusMeta">
+                      <div>
+                        <span>Estado</span>
+                        <strong>{plan?.is_active ? "Ativo" : "Inativo"}</strong>
+                      </div>
+                      <div>
+                        <span>Itens</span>
+                        <strong>{totalPlanItems}</strong>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </section>
 
-              <div className="dashboardTopGrid">
-                <div className="dashboardCard progressCard">
-                  <div className="dashboardCardHeader">
-                    <h3 className="dashboardCardTitle">Progresso geral</h3>
-                    <span className="dashboardSmallTag">Plano atual</span>
+              <section className="dashPrimeTopCards">
+                <article className="dashPrimePanelCard dashPrimeProgressCard">
+                  <div className="dashPrimeCardHead">
+                    <h3>Progresso geral</h3>
+                    <span className="dashPrimeChip">Plano atual</span>
                   </div>
 
-                  <div className="dashboardProgressValue">
-                    {progressPercent}%
-                  </div>
-                  <div className="dashboardProgressText">Concluído</div>
+                  <div className="dashPrimeBigNumber">{progressPercent}%</div>
+                  <div className="dashPrimeBigLabel">Concluído</div>
 
-                  <div className="dashboardProgressBar">
+                  <div className="dashPrimeBar">
                     <div
-                      className="dashboardProgressFill"
+                      className="dashPrimeBarFill"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
 
-                  <div className="dashboardMutedLine">
-                    {completedPlanItemsCount} de {totalPlanItems} exercícios com
-                    registo
+                  <div className="dashPrimeSoftText">
+                    {completedPlanItemsCount} de {totalPlanItems} exercícios com registo
                   </div>
-                </div>
 
-                <div className="dashboardCard">
-                  <div className="dashboardCardHeader">
-                    <h3 className="dashboardCardTitle">Plano atual</h3>
-                    <span className="dashboardSmallTag">
-                      {totalPlanItems} itens
+                  <div className="dashPrimeInlineNote">{progressMessage}</div>
+                </article>
+
+                <article className="dashPrimePanelCard">
+                  <div className="dashPrimeCardHead">
+                    <h3>Plano atual</h3>
+                    <span className="dashPrimeChip">
+                      {totalPlanItems} item{totalPlanItems !== 1 ? "s" : ""}
                     </span>
                   </div>
 
-                  <div className="dashboardInfoList">
-                    <div className="dashboardInfoItem">
+                  <div className="dashPrimeDataRows">
+                    <div className="dashPrimeDataRow">
                       <span>Plano</span>
                       <strong>{plan?.title || "Sem plano ativo"}</strong>
                     </div>
 
-                    <div className="dashboardInfoItem">
+                    <div className="dashPrimeDataRow">
                       <span>Sessões esta semana</span>
                       <strong>{currentWeekCount}</strong>
                     </div>
 
-                    <div className="dashboardInfoItem">
+                    <div className="dashPrimeDataRow">
                       <span>Estado</span>
                       <strong>{plan?.is_active ? "Ativo" : "Inativo"}</strong>
                     </div>
                   </div>
-                </div>
+                </article>
 
-                <div className="dashboardCard motivationCard">
-                  <div className="dashboardCardHeader">
-                    <h3 className="dashboardCardTitle">Motivação</h3>
-                    <span className="dashboardSmallTag">Gamificação</span>
+                <article className="dashPrimePanelCard">
+                  <div className="dashPrimeCardHead">
+                    <h3>Motivação</h3>
+                    <span className="dashPrimeChip">Gamificação</span>
                   </div>
 
-                  <div className="dashboardMotivationStats">
-                    <div className="dashboardMotivationItem">
-                      <div className="dashboardMotivationValue">
-                        {badges.length}
-                      </div>
-                      <div className="dashboardMotivationLabel">Badges</div>
+                  <div className="dashPrimeMotivationWrap">
+                    <div className="dashPrimeMetricMini">
+                      <span>Badges</span>
+                      <strong>{badges.length}</strong>
                     </div>
 
-                    <div className="dashboardMotivationItem">
-                      <div className="dashboardMotivationValue">
-                        {stats.total_points ?? 0}
-                      </div>
-                      <div className="dashboardMotivationLabel">Pontos</div>
+                    <div className="dashPrimeMetricMini">
+                      <span>Pontos</span>
+                      <strong>{totalPoints}</strong>
                     </div>
                   </div>
 
-                  <div className="dashboardStars">🏅 ⭐</div>
+                  <div className="dashPrimeScoreBlock">
+                    <div className="dashPrimeScoreLine">
+                      <span>Desempenho acumulado</span>
+                      <strong>{totalPoints} pts</strong>
+                    </div>
+                    <div className="dashPrimeBar dashPrimeBarThin">
+                      <div
+                        className="dashPrimeBarFill"
+                        style={{
+                          width: `${Math.max(8, Math.min(100, totalPoints % 101))}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="dashPrimeSoftText">
+                      Continua consistente para reforçar a tua progressão na plataforma.
+                    </p>
+                  </div>
+                </article>
+              </section>
+
+              <section className="dashPrimeSectionTitleWrap">
+                <div>
+                  <h2 className="dashPrimeSectionTitle">Ações rápidas</h2>
+                  <p className="dashPrimeSectionSub">
+                    Acessos diretos às áreas mais importantes do teu dia
+                  </p>
                 </div>
-              </div>
+              </section>
 
-              <div className="dashboardSectionHeader">
-                <h2 className="dashboardSectionTitle">Ações rápidas</h2>
-                <p className="dashboardSectionSub">
-                  Atalhos para as ações mais importantes do teu dia
-                </p>
-              </div>
-
-              <div className="dashboardActionsGrid">
-                <Link to="/patient/plan" className="dashboardActionCard">
-                  <div className="dashboardActionIcon">📋</div>
-                  <div className="dashboardActionTitle">Consultar plano</div>
-                  <div className="dashboardActionText">
-                    Ver exercícios, séries e sessões do plano atual.
+              <section className="dashPrimeActionsGrid">
+                <Link to="/patient/plan" className="dashPrimeActionCard">
+                  <div className="dashPrimeActionTop">
+                    <span className="dashPrimeActionPill">Plano</span>
                   </div>
+                  <h3>Consultar plano</h3>
+                  <p>Ver exercícios, séries e sessões do plano atual.</p>
+                  <span className="dashPrimeActionLink">Abrir plano</span>
                 </Link>
 
-                <Link to="/patient/gamification" className="dashboardActionCard">
-                  <div className="dashboardActionIcon">⭐</div>
-                  <div className="dashboardActionTitle">Gamificação</div>
-                  <div className="dashboardActionText">
-                    Acompanhar pontos, badges, desafios e recompensas.
+                <Link to="/patient/gamification" className="dashPrimeActionCard">
+                  <div className="dashPrimeActionTop">
+                    <span className="dashPrimeActionPill">Progresso</span>
                   </div>
+                  <h3>Gamificação</h3>
+                  <p>Acompanhar pontos, badges, desafios e recompensas.</p>
+                  <span className="dashPrimeActionLink">Ver gamificação</span>
                 </Link>
 
-                <Link to="/messages" className="dashboardActionCard">
-                  <div className="dashboardActionIcon">💬</div>
-                  <div className="dashboardActionTitle">Mensagem ao terapeuta</div>
-                  <div className="dashboardActionText">
-                    Enviar dúvidas, feedback ou acompanhar orientações.
+                <Link to="/messages" className="dashPrimeActionCard">
+                  <div className="dashPrimeActionTop">
+                    <span className="dashPrimeActionPill">Comunicação</span>
                   </div>
+                  <h3>Mensagem ao terapeuta</h3>
+                  <p>Enviar dúvidas, feedback ou acompanhar orientações.</p>
+                  <span className="dashPrimeActionLink">Abrir mensagens</span>
                 </Link>
-              </div>
+              </section>
 
-              <div className="dashboardBottomGrid">
-                <div className="dashboardCard">
-                  <div className="dashboardCardHeader">
-                    <h3 className="dashboardCardTitle">Resumo da semana</h3>
+              <section className="dashPrimeBottomGrid">
+                <article className="dashPrimePanelCard">
+                  <div className="dashPrimeCardHead">
+                    <h3>Resumo da semana</h3>
+                    <span className="dashPrimeChip">Atual</span>
                   </div>
 
-                  <div className="dashboardInfoList">
-                    <div className="dashboardInfoItem">
+                  <div className="dashPrimeSummaryGrid">
+                    <div className="dashPrimeSummaryBox">
                       <span>Exercícios realizados</span>
                       <strong>{totalExercises}</strong>
                     </div>
-                    <div className="dashboardInfoItem">
+
+                    <div className="dashPrimeSummaryBox">
                       <span>Tempo total</span>
                       <strong>{totalMinutes} min</strong>
                     </div>
-                    <div className="dashboardInfoItem">
+
+                    <div className="dashPrimeSummaryBox">
                       <span>Estado atual</span>
-                      <strong>
-                        {totalExercises ? "Boa evolução" : "Sem atividade"}
-                      </strong>
+                      <strong>{weeklyState}</strong>
                     </div>
-                  </div>
-                </div>
-
-                <div className="dashboardCard">
-                  <div className="dashboardCardHeader">
-                    <h3 className="dashboardCardTitle">Lembrete diário</h3>
                   </div>
 
-                  <div className="dashboardReminderBox">
-                    <div className="dashboardReminderTitle">
-                      Tens {unreadNotifications} notificações por ver
+                  <div className="dashPrimeMessageBox">
+                    <p>{weeklyMessage}</p>
+                  </div>
+                </article>
+
+                <article className="dashPrimePanelCard">
+                  <div className="dashPrimeCardHead">
+                    <h3>Lembrete diário</h3>
+                    <span className="dashPrimeChip">Hoje</span>
+                  </div>
+
+                  <div className="dashPrimeReminderCard">
+                    <div className="dashPrimeReminderHeader">
+                      <div className="dashPrimeReminderCounter">
+                        {unreadNotifications}
+                      </div>
+                      <div>
+                        <h4>
+                          {unreadNotifications > 0
+                            ? "Notificações pendentes"
+                            : "Sem notificações pendentes"}
+                        </h4>
+                        <p>{reminderMessage}</p>
+                      </div>
                     </div>
-                    <div className="dashboardReminderText">
-                      Acompanha as tuas mensagens, alertas e atualizações da
-                      plataforma para não perderes nada importante.
+
+                    <div className="dashPrimeReminderButtons">
+                      <Link
+                        to="/notifications"
+                        className="dashPrimeBtn dashPrimeBtnPrimary"
+                      >
+                        Ver notificações
+                      </Link>
+                      <Link
+                        to="/messages"
+                        className="dashPrimeBtn dashPrimeBtnGhost"
+                      >
+                        Ir para mensagens
+                      </Link>
                     </div>
                   </div>
-                </div>
-              </div>
+                </article>
+              </section>
             </>
           )}
         </div>

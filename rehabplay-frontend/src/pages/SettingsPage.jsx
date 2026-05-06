@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchMySettings, updateMySettings, logout } from "../api/auth";
+import { QRCodeSVG } from "qrcode.react";
+import {
+  fetchMySettings,
+  updateMySettings,
+  logout,
+  setup2FA,
+  verify2FA,
+  fetchMe,
+} from "../api/auth";
 
 function formatTheme(value) {
   if (value === "light") return "Claro";
@@ -27,19 +35,31 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const [otpSetupData, setOtpSetupData] = useState(null);
+  const [otpToken, setOtpToken] = useState("");
+  const [otpEnabled, setOtpEnabled] = useState(false);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    async function loadSettings() {
+    async function loadPage() {
       try {
-        const data = await fetchMySettings();
-        setSettings(data);
+        const [settingsData, meData] = await Promise.all([
+          fetchMySettings(),
+          fetchMe(),
+        ]);
+
+        setSettings(settingsData);
         setForm({
-          reminder_opt_in: !!data?.reminder_opt_in,
-          theme: data?.theme || "light",
-          language: data?.language || "pt-PT",
+          reminder_opt_in: !!settingsData?.reminder_opt_in,
+          theme: settingsData?.theme || "light",
+          language: settingsData?.language || "pt-PT",
         });
+
+        setOtpEnabled(!!meData?.two_factor_enabled);
       } catch (err) {
         setError(err.message || "Erro ao carregar definições.");
       } finally {
@@ -47,7 +67,7 @@ export default function SettingsPage() {
       }
     }
 
-    loadSettings();
+    loadPage();
   }, []);
 
   function handleChange(event) {
@@ -89,11 +109,55 @@ export default function SettingsPage() {
 
     try {
       await logout();
+      localStorage.removeItem("rehabplay_user");
       navigate("/login");
     } catch (err) {
       setError(err.message || "Erro ao terminar sessão.");
     } finally {
       setLoggingOut(false);
+    }
+  }
+
+  async function handleSetup2FA() {
+    setOtpLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const data = await setup2FA();
+      setOtpSetupData(data);
+
+      if (data?.confirmed) {
+        setOtpEnabled(true);
+        setSuccess("O 2FA já está ativo nesta conta.");
+      } else {
+        setSuccess(
+          "2FA iniciado. Faz scan do QR code com o Google Authenticator e confirma com o código."
+        );
+      }
+    } catch (err) {
+      setError(err.message || "Erro ao iniciar configuração do 2FA.");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  async function handleVerify2FA(event) {
+    event.preventDefault();
+    setOtpLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await verify2FA(otpToken);
+      setOtpEnabled(true);
+      setOtpToken("");
+      setOtpSetupData(null);
+      setSuccess("2FA ativado com sucesso.");
+    } catch (err) {
+      setError(err.message || "Erro ao confirmar o código 2FA.");
+    } finally {
+      setOtpLoading(false);
     }
   }
 
@@ -139,7 +203,9 @@ export default function SettingsPage() {
                   <div className="settingsInfoList">
                     <div className="settingsInfoItem">
                       <span>Lembretes</span>
-                      <strong>{form.reminder_opt_in ? "Ativos" : "Desativados"}</strong>
+                      <strong>
+                        {form.reminder_opt_in ? "Ativos" : "Desativados"}
+                      </strong>
                     </div>
 
                     <div className="settingsInfoItem">
@@ -169,8 +235,8 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="settingsInfoItem">
-                      <span>Personalização</span>
-                      <strong>Ativa</strong>
+                      <span>2FA</span>
+                      <strong>{otpEnabled ? "Ativo" : "Desativado"}</strong>
                     </div>
                   </div>
                 </div>
@@ -238,6 +304,87 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </form>
+
+              <div className="settingsFormCard">
+                <h3 className="settingsBlockTitle">
+                  Autenticação de dois fatores
+                </h3>
+
+                {otpEnabled ? (
+                  <div className="settings2FAActiveBox">
+                    <div className="settings2FABadge">2FA ativo</div>
+                    <p className="settingsMutedText">
+                      A tua conta está protegida com Google Authenticator.
+                      No próximo login, será pedido um código de verificação.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="settingsActionList">
+                      <button
+                        type="button"
+                        className="settingsGhostBtn"
+                        onClick={handleSetup2FA}
+                        disabled={otpLoading}
+                      >
+                        {otpLoading
+                          ? "A preparar..."
+                          : "Ativar 2FA com Google Authenticator"}
+                      </button>
+                    </div>
+
+                    {otpSetupData?.otpauth_url && (
+                      <div className="settingsOtpBox">
+                        <div className="settingsMutedText settingsOtpIntro">
+                          Faz scan deste QR code com o Google Authenticator e
+                          depois confirma com o código de 6 dígitos.
+                        </div>
+
+                        <div className="settingsQrWrap">
+                          <div className="settingsQrCard">
+                            <QRCodeSVG
+                              value={otpSetupData.otpauth_url}
+                              size={220}
+                              includeMargin={true}
+                            />
+                          </div>
+                        </div>
+
+                        <details className="settingsOtpDetails">
+                          <summary>Mostrar ligação manual</summary>
+                          <textarea
+                            className="input"
+                            readOnly
+                            value={otpSetupData.otpauth_url}
+                          />
+                        </details>
+
+                        <form
+                          onSubmit={handleVerify2FA}
+                          className="settingsOtpVerifyForm"
+                        >
+                          <input
+                            className="input"
+                            type="text"
+                            placeholder="Código de 6 dígitos"
+                            value={otpToken}
+                            onChange={(e) => setOtpToken(e.target.value)}
+                            required
+                          />
+
+                          <button
+                            type="submit"
+                            className="mediumButton"
+                            disabled={otpLoading}
+                          >
+                            {otpLoading ? "A confirmar..." : "Confirmar código"}
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
               <div className="settingsBottomGrid">
                 <div className="settingsCardModern">

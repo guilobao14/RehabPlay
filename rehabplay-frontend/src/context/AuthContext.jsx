@@ -1,28 +1,26 @@
-// src/context/AuthContext.jsx
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../api/client";
 
 const AuthContext = createContext(null);
 
 function normalizeRole(role) {
   if (!role) return null;
-  // aceitamos FAMILY ou FAMILIAR (e outros sinónimos se aparecerem)
   if (role === "FAMILIAR") return "FAMILY";
   return role;
 }
 
 export function AuthProvider({ children }) {
   const [me, setMe] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function refreshMe() {
     setLoading(true);
     try {
-      // tu já tens este endpoint no backend
       const data = await apiFetch("/api/me/profile/");
       const role = normalizeRole(data?.role);
-      setMe({ ...data, role });
-      return { ok: true, data: { ...data, role } };
+      const normalized = { ...data, role };
+      setMe(normalized);
+      return { ok: true, data: normalized };
     } catch (e) {
       setMe(null);
       return { ok: false, error: e?.message || "Not authenticated" };
@@ -32,9 +30,12 @@ export function AuthProvider({ children }) {
   }
 
   function logoutLocal() {
-    // só limpa frontend; o logout real do Django podes fazer depois
     setMe(null);
   }
+
+  useEffect(() => {
+    refreshMe();
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -54,6 +55,8 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth must be used inside AuthProvider");
+  }
   return ctx;
 }

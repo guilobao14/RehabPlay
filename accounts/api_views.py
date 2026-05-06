@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import get_user_model
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from .models import Profile, AccountSettings
 from .serializers import (
@@ -97,6 +98,7 @@ class LoginView(APIView):
         login(request, user)
 
         profile = getattr(user, "profile", None)
+        has_2fa = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
 
         return Response(
             {
@@ -104,10 +106,10 @@ class LoginView(APIView):
                 "username": user.username,
                 "role": profile.role if profile else None,
                 "display_name": profile.display_name if profile else user.username,
+                "requires_2fa": has_2fa,
             },
             status=status.HTTP_200_OK,
         )
-
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticatedOTP]
@@ -125,6 +127,7 @@ class MeView(APIView):
 
     def get(self, request):
         profile = getattr(request.user, "profile", None)
+        has_2fa = TOTPDevice.objects.filter(user=request.user, confirmed=True).exists()
 
         return Response(
             {
@@ -132,9 +135,9 @@ class MeView(APIView):
                 "username": request.user.username,
                 "role": profile.role if profile else None,
                 "display_name": profile.display_name if profile else request.user.username,
+                "two_factor_enabled": has_2fa,
             }
         )
-
 
 class MyProfileView(APIView):
     permission_classes = [IsAuthenticatedOTP]
