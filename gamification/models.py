@@ -79,7 +79,11 @@ class Challenge(models.Model):
     title = models.CharField(max_length=120)
     description = models.CharField(max_length=200, blank=True)
 
-    challenge_type = models.CharField(max_length=16, choices=ChallengeType.choices, default=ChallengeType.CUSTOM)
+    challenge_type = models.CharField(
+        max_length=16,
+        choices=ChallengeType.choices,
+        default=ChallengeType.CUSTOM
+    )
     goal_type = models.CharField(max_length=32, choices=ChallengeGoalType.choices)
     goal_target = models.PositiveIntegerField()
 
@@ -87,12 +91,25 @@ class Challenge(models.Model):
     ends_at = models.DateTimeField()
 
     reward_points = models.PositiveIntegerField(default=0)
-
     is_active = models.BooleanField(default=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_challenges"
+    )
+
+    assigned_patients = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through="UserChallenge",
+        related_name="assigned_challenges",
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.title} ({self.code})"
-
 
 class UserChallenge(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

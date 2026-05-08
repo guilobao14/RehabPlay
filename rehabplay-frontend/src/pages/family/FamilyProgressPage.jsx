@@ -4,13 +4,127 @@ import {
   fetchFamilyLinks,
   fetchFamilyPatientProgress,
 } from "../../api/family";
+import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
 
-function formatDateTime(value) {
+const familyProgressText = {
+  "pt-PT": {
+    hello: "Olá",
+    family: "Familiar",
+    title: "Progresso do Paciente",
+    subtitle:
+      "Consulta resumida da evolução clínica dentro das permissões autorizadas.",
+    loadingPatients: "A carregar pacientes...",
+    loadingProgress: "A carregar progresso...",
+    linksError: "Erro ao carregar ligações familiares.",
+    progressError: "Erro ao carregar progresso do paciente.",
+
+    selectPatient: "Selecionar paciente",
+    noPatients: "Não existem pacientes com acesso ao progresso.",
+    patientSummary: "Resumo do paciente",
+    patient: "Paciente",
+    totalRecords: "Registos totais",
+    accumulatedTime: "Tempo acumulado",
+    currentProgress: "Progresso atual",
+    progressText: "Estimativa baseada no número de registos disponíveis.",
+    weekRecords: "Registos esta semana",
+    weekRecordsText: "Entradas associadas à semana atual.",
+    differentExercises: "Exercícios diferentes",
+    differentExercisesText: "Exercícios com registos dentro do histórico visível.",
+    indicators: "Indicadores",
+    clinical: "Clínico",
+    avgPain: "Dor média",
+    avgComfort: "Conforto médio",
+    totalTime: "Tempo total",
+    generalReading: "Leitura geral",
+    summary: "Resumo",
+    hasProgress: "Existe progresso registado",
+    noEnoughData: "Sem dados suficientes",
+    generalText:
+      "Esta vista mostra apenas informação autorizada para acompanhamento familiar, sem acesso a mensagens privadas.",
+    latestRecords: "Últimos registos",
+    latestRecordsText: "Histórico recente das sessões e exercícios realizados",
+    noRecords: "Sem registos",
+    noRecordsText:
+      "Ainda não existem entradas de progresso para este paciente.",
+    exercise: "Exercício",
+    date: "Data",
+    pain: "Dor",
+    comfort: "Conforto",
+    difficulty: "Dificuldade",
+    notes: "Notas",
+    quickActions: "Ações rápidas",
+    backDashboard: "Voltar ao dashboard",
+    viewLinks: "Ver ligações",
+    privacyNote: "Nota de privacidade",
+    limitedTracking: "Acompanhamento limitado",
+    limitedText:
+      "Esta página serve apenas para apoio familiar autorizado. As conversas clínicas entre paciente e terapeuta não são apresentadas.",
+    minutes: "min",
+  },
+
+  en: {
+    hello: "Hi",
+    family: "Family",
+    title: "Patient Progress",
+    subtitle:
+      "View a summarized clinical evolution within authorized permissions.",
+    loadingPatients: "Loading patients...",
+    loadingProgress: "Loading progress...",
+    linksError: "Error loading family links.",
+    progressError: "Error loading patient progress.",
+
+    selectPatient: "Select patient",
+    noPatients: "There are no patients with progress access.",
+    patientSummary: "Patient summary",
+    patient: "Patient",
+    totalRecords: "Total records",
+    accumulatedTime: "Accumulated time",
+    currentProgress: "Current progress",
+    progressText: "Estimate based on the number of available records.",
+    weekRecords: "Records this week",
+    weekRecordsText: "Entries associated with the current week.",
+    differentExercises: "Different exercises",
+    differentExercisesText: "Exercises with records in the visible history.",
+    indicators: "Indicators",
+    clinical: "Clinical",
+    avgPain: "Average pain",
+    avgComfort: "Average comfort",
+    totalTime: "Total time",
+    generalReading: "General reading",
+    summary: "Summary",
+    hasProgress: "Progress has been recorded",
+    noEnoughData: "Not enough data",
+    generalText:
+      "This view only shows authorized family monitoring information, with no access to private messages.",
+    latestRecords: "Latest records",
+    latestRecordsText: "Recent history of sessions and completed exercises",
+    noRecords: "No records",
+    noRecordsText:
+      "There are no progress entries for this patient yet.",
+    exercise: "Exercise",
+    date: "Date",
+    pain: "Pain",
+    comfort: "Comfort",
+    difficulty: "Difficulty",
+    notes: "Notes",
+    quickActions: "Quick actions",
+    backDashboard: "Back to dashboard",
+    viewLinks: "View links",
+    privacyNote: "Privacy note",
+    limitedTracking: "Limited monitoring",
+    limitedText:
+      "This page is only for authorized family support. Clinical conversations between patient and therapist are not shown.",
+    minutes: "min",
+  },
+};
+
+function formatDateTime(value, language) {
   if (!value) return "-";
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
 
-  return date.toLocaleString("pt-PT", {
+  return date.toLocaleString(language === "en" ? "en-GB" : "pt-PT", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -19,15 +133,17 @@ function formatDateTime(value) {
   });
 }
 
-function getWeekLabel(dateString) {
+function getWeekLabel(dateString, language) {
   const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "Sem data";
+  if (Number.isNaN(date.getTime())) {
+    return language === "en" ? "No date" : "Sem data";
+  }
 
   const startOfYear = new Date(date.getFullYear(), 0, 1);
   const diffDays = Math.floor((date - startOfYear) / 86400000);
   const week = Math.ceil((diffDays + startOfYear.getDay() + 1) / 7);
 
-  return `Semana ${week}`;
+  return `${language === "en" ? "Week" : "Semana"} ${week}`;
 }
 
 function average(values) {
@@ -35,7 +151,7 @@ function average(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function normalizeLink(raw) {
+function normalizeLink(raw, text) {
   return {
     id: raw.id,
     patientId: raw.patient ?? raw.patient_id ?? raw.patient_user_id ?? null,
@@ -43,16 +159,28 @@ function normalizeLink(raw) {
       raw.patient_display_name ||
       raw.patient_name ||
       raw.patient_username ||
-      `Paciente ${raw.patient ?? raw.patient_id ?? ""}`,
+      `${text.patient} ${raw.patient ?? raw.patient_id ?? ""}`,
     canViewProgress:
-      raw.can_view_progress === true ||
-      raw.can_view_progress === false
+      raw.can_view_progress === true || raw.can_view_progress === false
         ? raw.can_view_progress
         : false,
   };
 }
 
+function translateDifficulty(value, text) {
+  const normalized = String(value || "").toUpperCase();
+
+  if (normalized === "EASY") return text.easy || "Easy";
+  if (normalized === "MEDIUM") return text.medium || "Medium";
+  if (normalized === "HARD") return text.hard || "Hard";
+
+  return value || "-";
+}
+
 export default function FamilyProgressPage() {
+  const { language } = useAppPreferences();
+  const text = familyProgressText[language] || familyProgressText["pt-PT"];
+
   const [links, setLinks] = useState([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [entries, setEntries] = useState([]);
@@ -64,9 +192,11 @@ export default function FamilyProgressPage() {
   useEffect(() => {
     async function loadLinks() {
       try {
+        setError("");
+
         const data = await fetchFamilyLinks();
         const safeLinks = Array.isArray(data)
-          ? data.map(normalizeLink).filter((item) => item.canViewProgress)
+          ? data.map((item) => normalizeLink(item, text)).filter((item) => item.canViewProgress)
           : [];
 
         setLinks(safeLinks);
@@ -75,14 +205,14 @@ export default function FamilyProgressPage() {
           setSelectedPatientId(String(safeLinks[0].patientId));
         }
       } catch (err) {
-        setError(err.message || "Erro ao carregar ligações familiares.");
+        setError(err.message || text.linksError);
       } finally {
         setLoadingLinks(false);
       }
     }
 
     loadLinks();
-  }, []);
+  }, [text]);
 
   useEffect(() => {
     async function loadProgress() {
@@ -93,17 +223,19 @@ export default function FamilyProgressPage() {
 
       try {
         setLoadingProgress(true);
+        setError("");
+
         const data = await fetchFamilyPatientProgress(selectedPatientId);
         setEntries(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message || "Erro ao carregar progresso do paciente.");
+        setError(err.message || text.progressError);
       } finally {
         setLoadingProgress(false);
       }
     }
 
     loadProgress();
-  }, [selectedPatientId]);
+  }, [selectedPatientId, text.progressError]);
 
   const selectedLink = useMemo(() => {
     return (
@@ -138,15 +270,16 @@ export default function FamilyProgressPage() {
   }, [entries]);
 
   const weeklyCount = useMemo(() => {
-    const currentWeek = getWeekLabel(new Date().toISOString());
+    const currentWeek = getWeekLabel(new Date().toISOString(), language);
 
     return entries.filter(
-      (entry) => getWeekLabel(entry.performed_at) === currentWeek
+      (entry) => getWeekLabel(entry.performed_at, language) === currentWeek
     ).length;
-  }, [entries]);
+  }, [entries, language]);
 
   const uniqueExercises = useMemo(() => {
-    return new Set(entries.map((item) => item.exercise_name).filter(Boolean)).size;
+    return new Set(entries.map((item) => item.exercise_name).filter(Boolean))
+      .size;
   }, [entries]);
 
   const latestEntries = useMemo(() => {
@@ -167,228 +300,286 @@ export default function FamilyProgressPage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Familiar</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Progresso do Paciente</h1>
-          <div className="pageSubtitle">
-            Consulta resumida da evolução clínica dentro das permissões disponíveis
+          <div className="userArea">
+            {text.hello}, {text.family}
           </div>
         </div>
 
-        <div className="content">
+        <main className="familyDashPrimePage">
+          <section className="familyDashHero">
+            <div className="familyDashHeroContent">
+              <span>{text.limitedTracking}</span>
+              <h1>{text.title}</h1>
+              <p>{text.subtitle}</p>
+            </div>
+
+            <div className="familyDashHeroPanel">
+              <span>{text.patient}</span>
+              <strong>{selectedLink?.patientName || "-"}</strong>
+              <p>
+                {latestEntries[0]
+                  ? formatDateTime(latestEntries[0].performed_at, language)
+                  : "-"}
+              </p>
+            </div>
+          </section>
+
           {error && <div className="theraNoticeError">{error}</div>}
 
-          <div className="familyTopGrid">
-            <div className="familyCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Selecionar paciente</h3>
+          <section className="familyDashMainGrid">
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.selectPatient}</h2>
+                  <span>{text.patientSummary}</span>
+                </div>
               </div>
 
               {loadingLinks ? (
-                <div className="familyNoteText">A carregar pacientes...</div>
+                <div className="familyDashNote">
+                  <p>{text.loadingPatients}</p>
+                </div>
               ) : links.length === 0 ? (
-                <div className="familyNoteText">
-                  Não existem pacientes com acesso ao progresso.
+                <div className="familyDashNote">
+                  <p>{text.noPatients}</p>
                 </div>
               ) : (
-                <select
-                  className="input"
-                  value={selectedPatientId}
-                  onChange={(e) => setSelectedPatientId(e.target.value)}
-                >
-                  {links.map((link) => (
-                    <option key={link.id} value={link.patientId}>
-                      {link.patientName}
-                    </option>
-                  ))}
-                </select>
+                <div className="familyDashInfoList">
+                  <div>
+                    <span>{text.patient}</span>
+                    <strong>{selectedLink?.patientName || "-"}</strong>
+                  </div>
+
+                  <select
+                    className="input"
+                    value={selectedPatientId}
+                    onChange={(e) => setSelectedPatientId(e.target.value)}
+                  >
+                    {links.map((link) => (
+                      <option key={link.id} value={link.patientId}>
+                        {link.patientName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
             </div>
 
-            <div className="familyCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Resumo do paciente</h3>
+            <div className="familyDashProgressCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.currentProgress}</h2>
+                  <span>{text.summary}</span>
+                </div>
               </div>
 
-              <div className="familyInfoList">
-                <div className="familyInfoItem">
-                  <span>Paciente</span>
-                  <strong>{selectedLink?.patientName || "-"}</strong>
+              <div className="familyDashProgressValue">{progressPercent}%</div>
+              <div className="familyDashProgressText">{text.currentProgress}</div>
+
+              <div className="familyDashProgressBar">
+                <div style={{ width: `${progressPercent}%` }} />
+              </div>
+
+              <p>{text.progressText}</p>
+            </div>
+
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.patientSummary}</h2>
+                  <span>{text.summary}</span>
                 </div>
-                <div className="familyInfoItem">
-                  <span>Registos totais</span>
+              </div>
+
+              <div className="familyDashInfoList">
+                <div>
+                  <span>{text.totalRecords}</span>
                   <strong>{totalEntries}</strong>
                 </div>
-                <div className="familyInfoItem">
-                  <span>Tempo acumulado</span>
-                  <strong>{totalMinutes} min</strong>
+
+                <div>
+                  <span>{text.accumulatedTime}</span>
+                  <strong>
+                    {totalMinutes} {text.minutes}
+                  </strong>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="familyHeroGrid">
-            <div className="familyHeroCard">
-              <div className="familyHeroLabel">Progresso atual</div>
-              <div className="familyHeroValue">{progressPercent}%</div>
-              <div className="familyHeroText">
-                Estimativa baseada no número de registos disponíveis.
-              </div>
+          <section className="familyDashStats" style={{ marginTop: 22 }}>
+            <div>
+              <span>{text.weekRecords}</span>
+              <strong>{weeklyCount}</strong>
+              <p>{text.weekRecordsText}</p>
             </div>
 
-            <div className="familyHeroCard">
-              <div className="familyHeroLabel">Registos esta semana</div>
-              <div className="familyHeroValue">{weeklyCount}</div>
-              <div className="familyHeroText">
-                Entradas associadas à semana atual.
-              </div>
+            <div>
+              <span>{text.differentExercises}</span>
+              <strong>{uniqueExercises}</strong>
+              <p>{text.differentExercisesText}</p>
             </div>
 
-            <div className="familyHeroCard">
-              <div className="familyHeroLabel">Exercícios diferentes</div>
-              <div className="familyHeroValue">{uniqueExercises}</div>
-              <div className="familyHeroText">
-                Exercícios com registos dentro do histórico visível.
-              </div>
+            <div>
+              <span>{text.totalTime}</span>
+              <strong>
+                {totalMinutes} {text.minutes}
+              </strong>
+              <p>{text.generalText}</p>
             </div>
-          </div>
+          </section>
 
-          <div className="familyTopGrid">
-            <div className="familyCard familyProgressCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Indicadores</h3>
-                <span className="familySmallTag">Clínico</span>
+          <section className="familyDashMainGrid">
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.indicators}</h2>
+                  <span>{text.clinical}</span>
+                </div>
               </div>
 
-              <div className="familyInfoList">
-                <div className="familyInfoItem">
-                  <span>Dor média</span>
+              <div className="familyDashInfoList">
+                <div>
+                  <span>{text.avgPain}</span>
                   <strong>{avgPain}</strong>
                 </div>
-                <div className="familyInfoItem">
-                  <span>Conforto médio</span>
+
+                <div>
+                  <span>{text.avgComfort}</span>
                   <strong>{avgComfort}</strong>
                 </div>
-                <div className="familyInfoItem">
-                  <span>Tempo total</span>
-                  <strong>{totalMinutes} min</strong>
+
+                <div>
+                  <span>{text.totalTime}</span>
+                  <strong>
+                    {totalMinutes} {text.minutes}
+                  </strong>
                 </div>
               </div>
             </div>
 
-            <div className="familyCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Leitura geral</h3>
-                <span className="familySmallTag">Resumo</span>
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.generalReading}</h2>
+                  <span>{text.summary}</span>
+                </div>
               </div>
 
-              <div className="familyNoteBox">
-                <div className="familyNoteTitle">
-                  {entries.length ? "Existe progresso registado" : "Sem dados suficientes"}
-                </div>
-                <div className="familyNoteText">
-                  Esta vista mostra apenas informação autorizada para
-                  acompanhamento familiar, sem capacidade de edição.
-                </div>
+              <div className="familyDashNote">
+                <strong>
+                  {entries.length ? text.hasProgress : text.noEnoughData}
+                </strong>
+                <p>{text.generalText}</p>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="familySectionHeader">
-            <h2 className="familySectionTitle">Últimos registos</h2>
-            <p className="familySectionSub">
-              Histórico recente das sessões e exercícios realizados
-            </p>
-          </div>
+          <section className="familyDashSectionTitle">
+            <div>
+              <h2>{text.latestRecords}</h2>
+              <p>{text.latestRecordsText}</p>
+            </div>
+          </section>
 
-          <div className="familyLinksGridReal">
+          <section className="familyLinksGridReal">
             {loadingProgress ? (
-              <div className="familyCard">
-                <div className="familyNoteText">A carregar progresso...</div>
+              <div className="familyDashCard">
+                <div className="familyDashNote">
+                  <p>{text.loadingProgress}</p>
+                </div>
               </div>
             ) : latestEntries.length === 0 ? (
-              <div className="familyCard">
-                <div className="familyNoteBox">
-                  <div className="familyNoteTitle">Sem registos</div>
-                  <div className="familyNoteText">
-                    Ainda não existem entradas de progresso para este paciente.
-                  </div>
+              <div className="familyDashCard">
+                <div className="familyDashNote">
+                  <strong>{text.noRecords}</strong>
+                  <p>{text.noRecordsText}</p>
                 </div>
               </div>
             ) : (
               latestEntries.map((entry) => (
-                <div key={entry.id} className="familyCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">
-                      {entry.exercise_name || `Exercício ${entry.plan_item}`}
-                    </h3>
-                    <span className="familySmallTag">
-                      {entry.duration_minutes || 0} min
-                    </span>
+                <article key={entry.id} className="familyDashCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>
+                        {entry.exercise_name ||
+                          `${text.exercise} ${entry.plan_item}`}
+                      </h2>
+                      <span>
+                        {entry.duration_minutes || 0} {text.minutes}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="familyInfoList">
-                    <div className="familyInfoItem">
-                      <span>Data</span>
-                      <strong>{formatDateTime(entry.performed_at)}</strong>
+                  <div className="familyDashInfoList">
+                    <div>
+                      <span>{text.date}</span>
+                      <strong>
+                        {formatDateTime(entry.performed_at, language)}
+                      </strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Dor</span>
+
+                    <div>
+                      <span>{text.pain}</span>
                       <strong>{entry.pain_level ?? "-"}</strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Conforto</span>
+
+                    <div>
+                      <span>{text.comfort}</span>
                       <strong>{entry.comfort_level ?? "-"}</strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Dificuldade</span>
-                      <strong>{entry.perceived_difficulty ?? "-"}</strong>
+
+                    <div>
+                      <span>{text.difficulty}</span>
+                      <strong>{translateDifficulty(entry.perceived_difficulty, text)}</strong>
                     </div>
                   </div>
 
                   {entry.notes && (
-                    <div className="familyNoteBox" style={{ marginTop: 16 }}>
-                      <div className="familyNoteText">{entry.notes}</div>
+                    <div className="familyDashNote">
+                      <strong>{text.notes}</strong>
+                      <p>{entry.notes}</p>
                     </div>
                   )}
-                </div>
+                </article>
               ))
             )}
-          </div>
+          </section>
 
-          <div className="familyBottomGrid">
-            <div className="familyCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Ações rápidas</h3>
-              </div>
-
-              <div className="familyQuickActions">
-                <Link to="/family" className="familyGhostLinkBtn">
-                  Voltar ao dashboard
-                </Link>
-                <Link to="/family/links" className="familyGhostLinkBtn">
-                  Ver ligações
-                </Link>
-              </div>
-            </div>
-
-            <div className="familyCard">
-              <div className="familyCardHeader">
-                <h3 className="familyCardTitle">Nota</h3>
-              </div>
-
-              <div className="familyNoteBox">
-                <div className="familyNoteTitle">Acompanhamento limitado</div>
-                <div className="familyNoteText">
-                  Esta página serve apenas para apoio e acompanhamento, respeitando
-                  as permissões atribuídas ao familiar.
+          <section className="familyDashBottom">
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.quickActions}</h2>
                 </div>
               </div>
+
+              <div className="familyQuickActions" style={{ marginTop: 18 }}>
+                <Link to="/family" className="familyGhostLinkBtn">
+                  {text.backDashboard}
+                </Link>
+
+                <Link to="/family/links" className="familyGhostLinkBtn">
+                  {text.viewLinks}
+                </Link>
+              </div>
             </div>
-          </div>
-        </div>
+
+            <div className="familyDashCard">
+              <div className="familyDashCardHeader">
+                <div>
+                  <h2>{text.privacyNote}</h2>
+                </div>
+              </div>
+
+              <div className="familyDashNote">
+                <strong>{text.limitedTracking}</strong>
+                <p>{text.limitedText}</p>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );

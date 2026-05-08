@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TherapistSubnav from "../../components/TherapistSubnav";
-import { 
+import {
   fetchTherapistPatients,
   fetchPlans,
   createPlan,
@@ -11,8 +11,199 @@ import {
   deletePlanItem,
   fetchExercises,
 } from "../../api/therapist";
+import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
+
+const planManagerText = {
+  "pt-PT": {
+    hello: "Olá",
+    userFallback: "Terapeuta",
+
+    title: "Gestão de Planos",
+    subtitle:
+      "Cria, ativa e gere planos de reabilitação personalizados para cada paciente.",
+
+    loadingTitle: "A carregar...",
+    loadingText: "A obter pacientes, planos e exercícios.",
+    errorFallback: "Erro ao carregar gestão de planos.",
+
+    createPlan: "Criar novo plano",
+    createPlanText:
+      "Define o paciente, o título e se este deve ficar como plano ativo.",
+    patient: "Paciente",
+    selectPatient: "Selecionar paciente",
+    planTitle: "Título do plano",
+    planPlaceholder: "Ex: Mobilidade do Ombro",
+    setActive: "Definir como plano ativo",
+    createPlanButton: "Criar plano",
+    createSuccess: "Plano criado com sucesso.",
+    createError: "Erro ao criar plano.",
+
+    summary: "Resumo",
+    availablePatients: "Pacientes disponíveis",
+    existingPlans: "Planos existentes",
+    availableExercises: "Exercícios disponíveis",
+    activePlans: "Planos ativos",
+
+    createdPlans: "Planos criados",
+    createdPlansText: "Seleciona um plano para consultar e gerir os exercícios.",
+    noPlans: "Ainda não existem planos criados.",
+    active: "Ativo",
+    inactive: "Inativo",
+    seeDetails: "Ver detalhes",
+    activate: "Ativar",
+    deactivate: "Desativar",
+    updateSuccess: "Estado do plano atualizado.",
+    updateError: "Erro ao atualizar plano.",
+
+    planDetail: "Detalhe do plano",
+    selectPlan: "Seleciona um plano",
+    selectPlanText: "Escolhe um plano para veres os exercícios associados.",
+    planState: "Estado",
+    planItems: "Itens no plano",
+
+    addExercise: "Adicionar exercício",
+    addExerciseText:
+      "Configura duração, séries, repetições e frequência semanal do exercício.",
+    exercise: "Exercício",
+    selectExercise: "Selecionar exercício",
+    duration: "Duração",
+    minutesShort: "min",
+    sets: "Séries",
+    reps: "Repetições",
+    frequency: "Frequência / semana",
+    addToPlan: "Adicionar ao plano",
+    addSuccess: "Exercício adicionado ao plano.",
+    addError: "Erro ao adicionar exercício ao plano.",
+
+    planExercises: "Exercícios do plano",
+    loadingItems: "A carregar itens...",
+    noItems: "Este plano ainda não tem exercícios associados.",
+    remove: "Remover",
+    removeSuccess: "Exercício removido do plano.",
+    removeError: "Erro ao remover exercício do plano.",
+
+    undefinedPatient: "Paciente não definido",
+    patientFallback: "Paciente",
+    exerciseFallback: "Exercício",
+    planFallback: "Plano sem título",
+
+    rightPanelTitle: "Configuração clínica",
+    rightPanelText:
+      "Os parâmetros definidos aqui aparecem depois no plano do paciente e servem de base para o registo de progresso.",
+  },
+
+  en: {
+    hello: "Hi",
+    userFallback: "Therapist",
+
+    title: "Plan Management",
+    subtitle:
+      "Create, activate and manage personalized rehabilitation plans for each patient.",
+
+    loadingTitle: "Loading...",
+    loadingText: "Fetching patients, plans and exercises.",
+    errorFallback: "Error loading plan management.",
+
+    createPlan: "Create new plan",
+    createPlanText:
+      "Choose the patient, define the title and decide whether this should be the active plan.",
+    patient: "Patient",
+    selectPatient: "Select patient",
+    planTitle: "Plan title",
+    planPlaceholder: "Example: Shoulder Mobility",
+    setActive: "Set as active plan",
+    createPlanButton: "Create plan",
+    createSuccess: "Plan created successfully.",
+    createError: "Error creating plan.",
+
+    summary: "Summary",
+    availablePatients: "Available patients",
+    existingPlans: "Existing plans",
+    availableExercises: "Available exercises",
+    activePlans: "Active plans",
+
+    createdPlans: "Created plans",
+    createdPlansText: "Select a plan to review and manage its exercises.",
+    noPlans: "No plans have been created yet.",
+    active: "Active",
+    inactive: "Inactive",
+    seeDetails: "View details",
+    activate: "Activate",
+    deactivate: "Deactivate",
+    updateSuccess: "Plan status updated.",
+    updateError: "Error updating plan.",
+
+    planDetail: "Plan detail",
+    selectPlan: "Select a plan",
+    selectPlanText: "Choose a plan to view its assigned exercises.",
+    planState: "Status",
+    planItems: "Plan items",
+
+    addExercise: "Add exercise",
+    addExerciseText:
+      "Configure duration, sets, repetitions and weekly frequency for the exercise.",
+    exercise: "Exercise",
+    selectExercise: "Select exercise",
+    duration: "Duration",
+    minutesShort: "min",
+    sets: "Sets",
+    reps: "Reps",
+    frequency: "Frequency / week",
+    addToPlan: "Add to plan",
+    addSuccess: "Exercise added to plan.",
+    addError: "Error adding exercise to plan.",
+
+    planExercises: "Plan exercises",
+    loadingItems: "Loading items...",
+    noItems: "This plan does not have assigned exercises yet.",
+    remove: "Remove",
+    removeSuccess: "Exercise removed from plan.",
+    removeError: "Error removing exercise from plan.",
+
+    undefinedPatient: "Undefined patient",
+    patientFallback: "Patient",
+    exerciseFallback: "Exercise",
+    planFallback: "Untitled plan",
+
+    rightPanelTitle: "Clinical configuration",
+    rightPanelText:
+      "The parameters defined here appear later in the patient's plan and are used as the basis for progress tracking.",
+  },
+};
+
+function translateBackendText(value, language, fallback = "") {
+  if (!value) return fallback;
+  if (language !== "en") return value;
+
+  let text = String(value);
+
+  const dictionary = {
+    "Plano - Teste Notificações": "Plan - Notification Test",
+    "Plano Semana": "Week Plan",
+    "Plano de reabilitação": "Rehabilitation plan",
+    "Mobilidade do Ombro": "Shoulder Mobility",
+    "Elevação de braço": "Arm raise",
+    Alongamento: "Stretching",
+    Mobilidade: "Mobility",
+    Fortalecimento: "Strengthening",
+    Agachamento: "Squat",
+    Prancha: "Plank",
+    Flexão: "Push-up",
+    Caminhada: "Walking",
+    "Paciente undefined": "Undefined patient",
+  };
+
+  Object.entries(dictionary).forEach(([pt, en]) => {
+    text = text.replaceAll(pt, en);
+  });
+
+  return text;
+}
 
 export default function PlanManagementPage() {
+  const { language } = useAppPreferences();
+  const text = planManagerText[language] || planManagerText["pt-PT"];
+
   const [patients, setPatients] = useState([]);
   const [plans, setPlans] = useState([]);
   const [exercises, setExercises] = useState([]);
@@ -41,6 +232,9 @@ export default function PlanManagementPage() {
   useEffect(() => {
     async function loadData() {
       try {
+        setLoading(true);
+        setError("");
+
         const [patientsData, plansData, exercisesData] = await Promise.all([
           fetchTherapistPatients(),
           fetchPlans(),
@@ -48,9 +242,29 @@ export default function PlanManagementPage() {
         ]);
 
         const safePatients = Array.isArray(patientsData) ? patientsData : [];
-        const safePlans = Array.isArray(plansData) ? plansData : [];
         const safeExercises = Array.isArray(exercisesData) ? exercisesData : [];
+        const safePlans = (Array.isArray(plansData) ? plansData : []).map((plan) => {
+  let patientId =
+    plan.patient ??
+    plan.patient_id ??
+    plan.user_id ??
+    plan.patient_user_id ??
+    null;
 
+  if (!patientId && Array.isArray(plan.items) && plan.items.length > 0) {
+    patientId =
+      plan.items[0]?.patient ??
+      plan.items[0]?.patient_id ??
+      plan.items[0]?.user_id ??
+      null;
+  }
+
+  return {
+    ...plan,
+    patient: patientId,
+  };
+});
+        
         setPatients(safePatients);
         setPlans(safePlans);
         setExercises(safeExercises);
@@ -59,14 +273,14 @@ export default function PlanManagementPage() {
           setSelectedPlanId(safePlans[0].id);
         }
       } catch (err) {
-        setError(err.message || "Erro ao carregar gestão de planos.");
+        setError(err.message || text.errorFallback);
       } finally {
         setLoading(false);
       }
     }
 
     loadData();
-  }, []);
+  }, [text.errorFallback]);
 
   useEffect(() => {
     async function loadPlanItems() {
@@ -77,34 +291,55 @@ export default function PlanManagementPage() {
 
       try {
         setItemsLoading(true);
+        setError("");
+
         const data = await fetchPlanItems(selectedPlanId);
         setSelectedPlanItems(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message || "Erro ao carregar itens do plano.");
+        setError(err.message || text.errorFallback);
       } finally {
         setItemsLoading(false);
       }
     }
 
     loadPlanItems();
-  }, [selectedPlanId]);
+  }, [selectedPlanId, text.errorFallback]);
 
   const selectedPlan = useMemo(() => {
     return plans.find((plan) => plan.id === selectedPlanId) || null;
   }, [plans, selectedPlanId]);
 
-  function getPatientNameById(patientId) {
-    const found = patients.find((patient) => patient.user_id === patientId);
-    return found?.display_name || found?.username || `Paciente ${patientId}`;
-  }
+  const activePlanCount = useMemo(() => {
+    return plans.filter((plan) => plan.is_active).length;
+  }, [plans]);
+
+ function getPatientNameById(patientId) {
+  if (!patientId && patientId !== 0) return text.undefinedPatient;
+
+  const found = patients.find(
+    (patient) =>
+      String(patient.user_id) === String(patientId) ||
+      String(patient.id) === String(patientId)
+  );
+
+  return (
+    found?.display_name ||
+    found?.username ||
+    `${text.patientFallback} ${patientId}`
+  );
+}
 
   function getExerciseNameById(exerciseId) {
-    const found = exercises.find((exercise) => exercise.id === exerciseId);
-    return found?.name || `Exercício ${exerciseId}`;
+    const found = exercises.find(
+      (exercise) => String(exercise.id) === String(exerciseId)
+    );
+
+    return found?.name || `${text.exerciseFallback} ${exerciseId}`;
   }
 
   function handlePlanFormChange(event) {
     const { name, value, type, checked } = event.target;
+
     setPlanForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -113,6 +348,7 @@ export default function PlanManagementPage() {
 
   function handleItemFormChange(event) {
     const { name, value } = event.target;
+
     setItemForm((prev) => ({
       ...prev,
       [name]: value,
@@ -121,6 +357,7 @@ export default function PlanManagementPage() {
 
   async function handleCreatePlan(event) {
     event.preventDefault();
+
     setError("");
     setSuccess("");
 
@@ -131,17 +368,31 @@ export default function PlanManagementPage() {
         is_active: !!planForm.is_active,
       });
 
-      const updatedPlans = [created, ...plans];
-      setPlans(updatedPlans);
+      setPlans((prev) => {
+        const updatedList = [created, ...prev];
+
+        if (!created.is_active) return updatedList;
+
+        return updatedList.map((plan) => {
+          if (plan.id === created.id) return plan;
+          if (String(plan.patient) === String(created.patient)) {
+            return { ...plan, is_active: false };
+          }
+          return plan;
+        });
+      });
+
       setSelectedPlanId(created.id);
+
       setPlanForm({
         patient: "",
         title: "",
         is_active: true,
       });
-      setSuccess("Plano criado com sucesso.");
+
+      setSuccess(text.createSuccess);
     } catch (err) {
-      setError(err.message || "Erro ao criar plano.");
+      setError(err.message || text.createError);
     }
   }
 
@@ -157,21 +408,24 @@ export default function PlanManagementPage() {
       setPlans((prev) =>
         prev.map((item) => {
           if (item.id === updated.id) return updated;
+
           if (updated.is_active && item.patient === updated.patient) {
             return { ...item, is_active: false };
           }
+
           return item;
         })
       );
 
-      setSuccess("Estado do plano atualizado.");
+      setSuccess(text.updateSuccess);
     } catch (err) {
-      setError(err.message || "Erro ao atualizar plano.");
+      setError(err.message || text.updateError);
     }
   }
 
   async function handleAddPlanItem(event) {
     event.preventDefault();
+
     if (!selectedPlanId) return;
 
     setError("");
@@ -187,6 +441,7 @@ export default function PlanManagementPage() {
       });
 
       setSelectedPlanItems((prev) => [...prev, created]);
+
       setItemForm({
         exercise: "",
         duration_minutes: 10,
@@ -194,9 +449,10 @@ export default function PlanManagementPage() {
         reps: 10,
         frequency_per_week: 3,
       });
-      setSuccess("Exercício adicionado ao plano.");
+
+      setSuccess(text.addSuccess);
     } catch (err) {
-      setError(err.message || "Erro ao adicionar exercício ao plano.");
+      setError(err.message || text.addError);
     }
   }
 
@@ -207,9 +463,9 @@ export default function PlanManagementPage() {
     try {
       await deletePlanItem(itemId);
       setSelectedPlanItems((prev) => prev.filter((item) => item.id !== itemId));
-      setSuccess("Exercício removido do plano.");
+      setSuccess(text.removeSuccess);
     } catch (err) {
-      setError(err.message || "Erro ao remover exercício do plano.");
+      setError(err.message || text.removeError);
     }
   }
 
@@ -220,47 +476,66 @@ export default function PlanManagementPage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Terapeuta</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Gestão de Planos</h1>
-          <div className="pageSubtitle">
-            Criar, ativar e gerir planos de reabilitação dos pacientes
+          <div className="userArea">
+            {text.hello}, {text.userFallback}
           </div>
         </div>
 
-        <div className="content">
+        <main className="theraPlanPrimePage">
+          <section className="theraPlanPrimeHeader">
+            <div>
+              <h1>{text.title}</h1>
+              <p>{text.subtitle}</p>
+            </div>
+
+            <div className="theraPlanPrimeHeaderCard">
+              <span>{text.activePlans}</span>
+              <strong>{activePlanCount}</strong>
+            </div>
+          </section>
+
           <TherapistSubnav />
+
           {loading && (
-            <div className="theraCard">
-              <h3 className="theraCardTitle">A carregar...</h3>
-              <p className="theraMutedText">A obter pacientes, planos e exercícios.</p>
+            <div className="theraPlanPrimeState">
+              <h3>{text.loadingTitle}</h3>
+              <p>{text.loadingText}</p>
             </div>
           )}
 
-          {!loading && error && <div className="theraNoticeError">{error}</div>}
-          {!loading && success && <div className="theraNoticeOk">{success}</div>}
+          {!loading && error && (
+            <div className="theraPlanPrimeError">{error}</div>
+          )}
+
+          {!loading && success && (
+            <div className="theraPlanPrimeSuccess">{success}</div>
+          )}
 
           {!loading && (
             <>
-              <div className="theraTopGrid">
-                <form className="theraCard" onSubmit={handleCreatePlan}>
-                  <div className="theraCardHeader">
-                    <h3 className="theraCardTitle">Criar novo plano</h3>
+              <section className="theraPlanPrimeTopGrid">
+                <form
+                  className="theraPlanPrimeCard theraPlanPrimeCreate"
+                  onSubmit={handleCreatePlan}
+                >
+                  <div className="theraPlanPrimeCardHeader">
+                    <div>
+                      <h2>{text.createPlan}</h2>
+                      <p>{text.createPlanText}</p>
+                    </div>
                   </div>
 
-                  <div className="theraFormGrid">
-                    <div className="theraField">
-                      <label className="theraLabel">Paciente</label>
+                  <div className="theraPlanPrimeFormGrid">
+                    <div className="theraPlanPrimeField">
+                      <label>{text.patient}</label>
                       <select
-                        className="input"
                         name="patient"
                         value={planForm.patient}
                         onChange={handlePlanFormChange}
                         required
                       >
-                        <option value="">Selecionar paciente</option>
+                        <option value="">{text.selectPatient}</option>
                         {patients.map((patient) => (
                           <option key={patient.user_id} value={patient.user_id}>
                             {patient.display_name || patient.username}
@@ -269,170 +544,225 @@ export default function PlanManagementPage() {
                       </select>
                     </div>
 
-                    <div className="theraField">
-                      <label className="theraLabel">Título do plano</label>
+                    <div className="theraPlanPrimeField">
+                      <label>{text.planTitle}</label>
                       <input
-                        className="input"
                         name="title"
                         value={planForm.title}
                         onChange={handlePlanFormChange}
-                        placeholder="Ex: Mobilidade do Ombro"
+                        placeholder={text.planPlaceholder}
                         required
                       />
                     </div>
 
-                    <label className="theraCheckboxRow">
+                    <label className="theraPlanPrimeCheckbox">
                       <input
                         type="checkbox"
                         name="is_active"
                         checked={planForm.is_active}
                         onChange={handlePlanFormChange}
                       />
-                      <span>Definir como plano ativo</span>
+                      <span>{text.setActive}</span>
                     </label>
                   </div>
 
-                  <button type="submit" className="mediumButton theraMainBtn">
-                    Criar plano
+                  <button type="submit" className="theraPlanPrimePrimaryBtn">
+                    {text.createPlanButton}
                   </button>
                 </form>
 
-                <div className="theraCard">
-                  <div className="theraCardHeader">
-                    <h3 className="theraCardTitle">Resumo</h3>
+                <aside className="theraPlanPrimeCard theraPlanPrimeSummary">
+                  <div className="theraPlanPrimeCardHeader">
+                    <div>
+                      <h2>{text.summary}</h2>
+                    </div>
                   </div>
 
-                  <div className="theraInfoList">
-                    <div className="theraInfoItem">
-                      <span>Pacientes disponíveis</span>
+                  <div className="theraPlanPrimeSummaryGrid">
+                    <div>
+                      <span>{text.availablePatients}</span>
                       <strong>{patients.length}</strong>
                     </div>
-                    <div className="theraInfoItem">
-                      <span>Planos existentes</span>
+
+                    <div>
+                      <span>{text.existingPlans}</span>
                       <strong>{plans.length}</strong>
                     </div>
-                    <div className="theraInfoItem">
-                      <span>Exercícios disponíveis</span>
+
+                    <div>
+                      <span>{text.availableExercises}</span>
                       <strong>{exercises.length}</strong>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="theraMainGrid">
-                <div className="theraCard">
-                  <div className="theraCardHeader">
-                    <h3 className="theraCardTitle">Planos criados</h3>
+                    <div>
+                      <span>{text.activePlans}</span>
+                      <strong>{activePlanCount}</strong>
+                    </div>
+                  </div>
+                </aside>
+              </section>
+
+              <section className="theraPlanPrimeWorkspace">
+                <aside className="theraPlanPrimeCard theraPlanPrimePlans">
+                  <div className="theraPlanPrimeCardHeader">
+                    <div>
+                      <h2>{text.createdPlans}</h2>
+                      <p>{text.createdPlansText}</p>
+                    </div>
                   </div>
 
-                  <div className="theraPlanList">
+                  <div className="theraPlanPrimePlanList">
                     {plans.length === 0 ? (
-                      <div className="theraEmptyBox">
-                        Ainda não existem planos criados.
-                      </div>
+                      <div className="theraPlanPrimeEmpty">{text.noPlans}</div>
                     ) : (
-                      plans.map((plan) => (
-                        <button
-                          key={plan.id}
-                          className={`theraPlanItem ${
-                            selectedPlanId === plan.id ? "theraPlanItemActive" : ""
-                          }`}
-                          onClick={() => setSelectedPlanId(plan.id)}
-                        >
-                          <div className="theraPlanTop">
-                            <div className="theraPlanName">{plan.title}</div>
-                            <span className={`theraStatusTag ${plan.is_active ? "theraStatusActive" : ""}`}>
-                              {plan.is_active ? "Ativo" : "Inativo"}
-                            </span>
-                          </div>
+                      plans.map((plan) => {
+                        const translatedTitle = translateBackendText(
+                          plan.title,
+                          language,
+                          text.planFallback
+                        );
 
-                          <div className="theraPlanMeta">
-                            {getPatientNameById(plan.patient)}
-                          </div>
+                        return (
+                          <button
+                            key={plan.id}
+                            type="button"
+                            className={`theraPlanPrimePlanItem ${
+                              selectedPlanId === plan.id ? "isSelected" : ""
+                            }`}
+                            onClick={() => setSelectedPlanId(plan.id)}
+                          >
+                            <div className="theraPlanPrimePlanTop">
+                              <div>
+                                <h3>{translatedTitle}</h3>
+                                <p>{getPatientNameById(plan.patient)}</p>
+                              </div>
 
-                          <div className="theraPlanActions">
-                            <span className="theraSmallLink">
-                              Ver detalhes
-                            </span>
-                            <span
-                              className="theraSmallLink"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleActive(plan);
-                              }}
-                            >
-                              {plan.is_active ? "Desativar" : "Ativar"}
-                            </span>
-                          </div>
-                        </button>
-                      ))
+                              <span
+                                className={`theraPlanPrimeStatus ${
+                                  plan.is_active ? "isActive" : ""
+                                }`}
+                              >
+                                {plan.is_active ? text.active : text.inactive}
+                              </span>
+                            </div>
+
+                            <div className="theraPlanPrimePlanActions">
+                              <span>{text.seeDetails}</span>
+
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleToggleActive(plan);
+                                }}
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") {
+                                    event.stopPropagation();
+                                    handleToggleActive(plan);
+                                  }
+                                }}
+                              >
+                                {plan.is_active ? text.deactivate : text.activate}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
-                </div>
+                </aside>
 
-                <div className="theraRightColumn">
-                  <div className="theraCard">
-                    <div className="theraCardHeader">
-                      <h3 className="theraCardTitle">
-                        {selectedPlan ? "Detalhe do plano" : "Seleciona um plano"}
-                      </h3>
+                <section className="theraPlanPrimeRightColumn">
+                  <div className="theraPlanPrimeCard">
+                    <div className="theraPlanPrimeCardHeader">
+                      <div>
+                        <h2>
+                          {selectedPlan ? text.planDetail : text.selectPlan}
+                        </h2>
+                      </div>
                     </div>
 
                     {selectedPlan ? (
-                      <div className="theraInfoList">
-                        <div className="theraInfoItem">
-                          <span>Título</span>
-                          <strong>{selectedPlan.title}</strong>
+                      <div className="theraPlanPrimeDetailGrid">
+                        <div>
+                          <span>{text.planTitle}</span>
+                          <strong>
+                            {translateBackendText(
+                              selectedPlan.title,
+                              language,
+                              text.planFallback
+                            )}
+                          </strong>
                         </div>
-                        <div className="theraInfoItem">
-                          <span>Paciente</span>
-                          <strong>{getPatientNameById(selectedPlan.patient)}</strong>
+
+                        <div>
+                          <span>{text.patient}</span>
+                          <strong>
+                            {getPatientNameById(selectedPlan.patient)}
+                          </strong>
                         </div>
-                        <div className="theraInfoItem">
-                          <span>Estado</span>
-                          <strong>{selectedPlan.is_active ? "Ativo" : "Inativo"}</strong>
+
+                        <div>
+                          <span>{text.planState}</span>
+                          <strong>
+                            {selectedPlan.is_active
+                              ? text.active
+                              : text.inactive}
+                          </strong>
                         </div>
-                        <div className="theraInfoItem">
-                          <span>Itens no plano</span>
+
+                        <div>
+                          <span>{text.planItems}</span>
                           <strong>{selectedPlanItems.length}</strong>
                         </div>
                       </div>
                     ) : (
-                      <div className="theraEmptyBox">
-                        Escolhe um plano para veres os exercícios associados.
+                      <div className="theraPlanPrimeEmpty">
+                        {text.selectPlanText}
                       </div>
                     )}
                   </div>
 
                   {selectedPlan && (
-                    <form className="theraCard" onSubmit={handleAddPlanItem}>
-                      <div className="theraCardHeader">
-                        <h3 className="theraCardTitle">Adicionar exercício</h3>
+                    <form
+                      className="theraPlanPrimeCard"
+                      onSubmit={handleAddPlanItem}
+                    >
+                      <div className="theraPlanPrimeCardHeader">
+                        <div>
+                          <h2>{text.addExercise}</h2>
+                          <p>{text.addExerciseText}</p>
+                        </div>
                       </div>
 
-                      <div className="theraFormGrid">
-                        <div className="theraField">
-                          <label className="theraLabel">Exercício</label>
+                      <div className="theraPlanPrimeFormGrid isCompact">
+                        <div className="theraPlanPrimeField isWide">
+                          <label>{text.exercise}</label>
                           <select
-                            className="input"
                             name="exercise"
                             value={itemForm.exercise}
                             onChange={handleItemFormChange}
                             required
                           >
-                            <option value="">Selecionar exercício</option>
+                            <option value="">{text.selectExercise}</option>
                             {exercises.map((exercise) => (
                               <option key={exercise.id} value={exercise.id}>
-                                {exercise.name}
+                                {translateBackendText(
+                                  exercise.name,
+                                  language,
+                                  exercise.name
+                                )}
                               </option>
                             ))}
                           </select>
                         </div>
 
-                        <div className="theraField">
-                          <label className="theraLabel">Duração (min)</label>
+                        <div className="theraPlanPrimeField">
+                          <label>
+                            {text.duration} ({text.minutesShort})
+                          </label>
                           <input
-                            className="input"
                             type="number"
                             name="duration_minutes"
                             min="1"
@@ -442,10 +772,9 @@ export default function PlanManagementPage() {
                           />
                         </div>
 
-                        <div className="theraField">
-                          <label className="theraLabel">Séries</label>
+                        <div className="theraPlanPrimeField">
+                          <label>{text.sets}</label>
                           <input
-                            className="input"
                             type="number"
                             name="sets"
                             min="1"
@@ -455,10 +784,9 @@ export default function PlanManagementPage() {
                           />
                         </div>
 
-                        <div className="theraField">
-                          <label className="theraLabel">Repetições</label>
+                        <div className="theraPlanPrimeField">
+                          <label>{text.reps}</label>
                           <input
-                            className="input"
                             type="number"
                             name="reps"
                             min="1"
@@ -468,10 +796,9 @@ export default function PlanManagementPage() {
                           />
                         </div>
 
-                        <div className="theraField">
-                          <label className="theraLabel">Frequência / semana</label>
+                        <div className="theraPlanPrimeField">
+                          <label>{text.frequency}</label>
                           <input
-                            className="input"
                             type="number"
                             name="frequency_per_week"
                             min="1"
@@ -482,55 +809,73 @@ export default function PlanManagementPage() {
                         </div>
                       </div>
 
-                      <button type="submit" className="mediumButton theraMainBtn">
-                        Adicionar ao plano
+                      <button type="submit" className="theraPlanPrimePrimaryBtn">
+                        {text.addToPlan}
                       </button>
                     </form>
                   )}
 
-                  <div className="theraCard">
-                    <div className="theraCardHeader">
-                      <h3 className="theraCardTitle">Exercícios do plano</h3>
+                  <div className="theraPlanPrimeCard">
+                    <div className="theraPlanPrimeCardHeader">
+                      <div>
+                        <h2>{text.planExercises}</h2>
+                      </div>
                     </div>
 
                     {itemsLoading ? (
-                      <div className="theraEmptyBox">A carregar itens...</div>
-                    ) : selectedPlanItems.length === 0 ? (
-                      <div className="theraEmptyBox">
-                        Este plano ainda não tem exercícios associados.
+                      <div className="theraPlanPrimeEmpty">
+                        {text.loadingItems}
                       </div>
+                    ) : selectedPlanItems.length === 0 ? (
+                      <div className="theraPlanPrimeEmpty">{text.noItems}</div>
                     ) : (
-                      <div className="theraItemsList">
-                        {selectedPlanItems.map((item) => (
-                          <div key={item.id} className="theraItemCard">
-                            <div className="theraItemTop">
-                              <div className="theraItemName">
-                                {item.exercise_name || getExerciseNameById(item.exercise)}
+                      <div className="theraPlanPrimeItemList">
+                        {selectedPlanItems.map((item) => {
+                          const itemName = translateBackendText(
+                            item.exercise_name ||
+                              getExerciseNameById(item.exercise),
+                            language,
+                            text.exerciseFallback
+                          );
+
+                          return (
+                            <div
+                              key={item.id}
+                              className="theraPlanPrimeExerciseItem"
+                            >
+                              <div>
+                                <h3>{itemName}</h3>
+                                <p>
+                                  {item.duration_minutes} {text.minutesShort} ·{" "}
+                                  {item.sets} {text.sets.toLowerCase()} ·{" "}
+                                  {item.reps} {text.reps.toLowerCase()} ·{" "}
+                                  {item.frequency_per_week}x/
+                                  {language === "en" ? "week" : "semana"}
+                                </p>
                               </div>
 
                               <button
                                 type="button"
-                                className="theraDeleteBtn"
                                 onClick={() => handleDeleteItem(item.id)}
                               >
-                                Remover
+                                {text.remove}
                               </button>
                             </div>
-
-                            <div className="theraItemMeta">
-                              {item.duration_minutes} min · {item.sets} séries ·{" "}
-                              {item.reps} reps · {item.frequency_per_week}x/semana
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+
+                  <div className="theraPlanPrimeClinicalNote">
+                    <span>{text.rightPanelTitle}</span>
+                    <p>{text.rightPanelText}</p>
+                  </div>
+                </section>
+              </section>
             </>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

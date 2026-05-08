@@ -1,23 +1,229 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchMyProfile, updateMyProfile } from "../api/auth";
+import { fetchFamilyLinks, respondFamilyLink } from "../api/family";
+import { useAppPreferences } from "../context/AppPreferencesContext.jsx";
 
-function formatRole(role) {
-  if (role === "PATIENT") return "Paciente";
-  if (role === "THERAPIST") return "Terapeuta";
-  if (role === "FAMILY") return "Familiar";
+const profileText = {
+  "pt-PT": {
+    hello: "Olá",
+    userFallback: "Utilizador",
+    error: "Erro",
+
+    patient: "Paciente",
+    therapist: "Terapeuta",
+    family: "Familiar",
+
+    patientDescription:
+      "Conta orientada para acompanhamento do plano, progresso e comunicação com o terapeuta.",
+    therapistDescription:
+      "Conta orientada para gestão de pacientes, planos, exercícios e acompanhamento clínico.",
+    familyDescription:
+      "Conta orientada para acompanhamento familiar com permissões limitadas.",
+    defaultDescription: "Conta da plataforma RehabPlay.",
+
+    loadError: "Erro ao carregar perfil.",
+    updateError: "Erro ao atualizar perfil.",
+    success: "Perfil atualizado com sucesso.",
+
+    loadingTitle: "A carregar perfil...",
+    loadingText: "A obter os dados reais da tua conta.",
+
+    eyebrow: "Perfil da conta",
+    subtitle:
+      "Gere os teus dados principais, mantém o perfil atualizado e personaliza a forma como és identificado na plataforma.",
+
+    closeEdit: "Fechar edição",
+    editProfile: "Editar perfil",
+    settings: "Definições",
+
+    profilePhotoAlt: "Foto de perfil",
+    completeness: "Perfil preenchido",
+
+    editTitle: "Editar perfil",
+    editText: "Atualiza os dados visíveis na tua conta.",
+    displayName: "Nome apresentado",
+    phone: "Telefone",
+    profilePhoto: "Foto de perfil",
+    cancel: "Cancelar",
+    saving: "A guardar...",
+    saveChanges: "Guardar alterações",
+
+    personalInfo: "Informação pessoal",
+    mainData: "Dados principais",
+    role: "Função",
+
+    accountStatus: "Estado da conta",
+    summary: "Resumo",
+    activeProfile: "Perfil ativo",
+    uploadedPhoto: "Foto carregada",
+    availability: "Disponibilidade",
+    accessType: "Tipo de acesso",
+    yes: "Sim",
+    no: "Não",
+    active: "Ativa",
+
+    familyRequests: "Pedidos familiares",
+    familyRequestsSub:
+      "Pedidos de familiares que querem acompanhar o teu progresso.",
+    noFamilyRequests: "Sem pedidos familiares pendentes.",
+    requestFrom: "Pedido de",
+    approve: "Aceitar",
+    reject: "Rejeitar",
+    approvedRequest: "Pedido familiar aceite.",
+    rejectedRequest: "Pedido familiar rejeitado.",
+    pending: "Pendente",
+
+    presentation: "Apresentação",
+    context: "Contexto",
+    miniNote:
+      "Estes dados são usados para identificação, comunicação e personalização da experiência dentro da RehabPlay.",
+
+    quickActions: "Ações rápidas",
+    shortcuts: "Atalhos",
+    goSettings: "Ir para definições",
+    backDashboard: "Voltar ao dashboard",
+    updateInfo: "Atualizar informação",
+
+    noData: "Sem dados",
+    noDataText: "Não foi possível encontrar informações de perfil.",
+  },
+
+  en: {
+    hello: "Hi",
+    userFallback: "User",
+    error: "Error",
+
+    patient: "Patient",
+    therapist: "Therapist",
+    family: "Family member",
+
+    patientDescription:
+      "Account focused on following the plan, progress and communication with the therapist.",
+    therapistDescription:
+      "Account focused on managing patients, plans, exercises and clinical follow-up.",
+    familyDescription:
+      "Account focused on family monitoring with limited permissions.",
+    defaultDescription: "RehabPlay platform account.",
+
+    loadError: "Error loading profile.",
+    updateError: "Error updating profile.",
+    success: "Profile updated successfully.",
+
+    loadingTitle: "Loading profile...",
+    loadingText: "Fetching your real account data.",
+
+    eyebrow: "Account profile",
+    subtitle:
+      "Manage your main details, keep your profile updated and personalize how you are identified on the platform.",
+
+    closeEdit: "Close editing",
+    editProfile: "Edit profile",
+    settings: "Settings",
+
+    profilePhotoAlt: "Profile photo",
+    completeness: "Profile completion",
+
+    editTitle: "Edit profile",
+    editText: "Update the visible details in your account.",
+    displayName: "Display name",
+    phone: "Phone",
+    profilePhoto: "Profile photo",
+    cancel: "Cancel",
+    saving: "Saving...",
+    saveChanges: "Save changes",
+
+    personalInfo: "Personal information",
+    mainData: "Main details",
+    role: "Role",
+
+    accountStatus: "Account status",
+    summary: "Summary",
+    activeProfile: "Active profile",
+    uploadedPhoto: "Uploaded photo",
+    availability: "Availability",
+    accessType: "Access type",
+    yes: "Yes",
+    no: "No",
+    active: "Active",
+
+    familyRequests: "Family requests",
+    familyRequestsSub:
+      "Requests from family members who want to follow your progress.",
+    noFamilyRequests: "No pending family requests.",
+    requestFrom: "Request from",
+    approve: "Approve",
+    reject: "Reject",
+    approvedRequest: "Family request approved.",
+    rejectedRequest: "Family request rejected.",
+    pending: "Pending",
+
+    presentation: "Overview",
+    context: "Context",
+    miniNote:
+      "These details are used for identification, communication and personalization of the experience inside RehabPlay.",
+
+    quickActions: "Quick actions",
+    shortcuts: "Shortcuts",
+    goSettings: "Go to settings",
+    backDashboard: "Back to dashboard",
+    updateInfo: "Update information",
+
+    noData: "No data",
+    noDataText: "No profile information could be found.",
+  },
+};
+
+function formatRole(role, text) {
+  if (role === "PATIENT") return text.patient;
+  if (role === "THERAPIST") return text.therapist;
+  if (role === "FAMILY") return text.family;
   return role || "-";
 }
 
 function getInitials(name) {
   if (!name) return "U";
-  const parts = name.trim().split(/\s+/).slice(0, 2);
+  const parts = String(name).trim().split(/\s+/).slice(0, 2);
   return parts.map((p) => p[0]?.toUpperCase() || "").join("") || "U";
 }
 
+function getRoleDescription(role, text) {
+  if (role === "PATIENT") return text.patientDescription;
+  if (role === "THERAPIST") return text.therapistDescription;
+  if (role === "FAMILY") return text.familyDescription;
+  return text.defaultDescription;
+}
+
+function getProfileCompleteness(profile) {
+  const fields = [
+    profile?.display_name,
+    profile?.phone,
+    profile?.photo_url,
+    profile?.role,
+  ];
+
+  const completed = fields.filter(Boolean).length;
+  return Math.round((completed / fields.length) * 100);
+}
+
+function getFamilyRequestName(request) {
+  return (
+    request.family_display_name ||
+    request.family_username ||
+    request.family ||
+    "-"
+  );
+}
+
 export default function ProfilePage() {
+  const { language } = useAppPreferences();
+  const text = profileText[language] || profileText["pt-PT"];
+
   const [profile, setProfile] = useState(null);
+  const [familyRequests, setFamilyRequests] = useState([]);
+
   const [loading, setLoading] = useState(true);
+  const [respondingId, setRespondingId] = useState(null);
   const [error, setError] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
@@ -34,26 +240,43 @@ export default function ProfilePage() {
     async function loadProfile() {
       try {
         const data = await fetchMyProfile();
+
         setProfile(data);
         setForm({
           display_name: data?.display_name || "",
           phone: data?.phone || "",
           photo: null,
         });
+
+        if (data?.role === "PATIENT") {
+          const linksData = await fetchFamilyLinks().catch(() => []);
+          const safeLinks = Array.isArray(linksData) ? linksData : [];
+
+          setFamilyRequests(
+            safeLinks.filter(
+              (item) => String(item.status || "").toUpperCase() === "PENDING"
+            )
+          );
+        }
       } catch (err) {
-        setError(err.message || "Erro ao carregar perfil.");
+        setError(err.message || text.loadError);
       } finally {
         setLoading(false);
       }
     }
 
     loadProfile();
-  }, []);
+  }, [text.loadError]);
 
-  const initials = useMemo(
-    () => getInitials(profile?.display_name),
-    [profile?.display_name]
-  );
+  const displayName = profile?.display_name || text.userFallback;
+  const firstName = String(displayName).split(" ")[0] || text.userFallback;
+
+  const initials = useMemo(() => getInitials(displayName), [displayName]);
+
+  const completeness = useMemo(() => {
+    if (!profile) return 0;
+    return getProfileCompleteness(profile);
+  }, [profile]);
 
   function handleChange(event) {
     const { name, value, files } = event.target;
@@ -74,6 +297,7 @@ export default function ProfilePage() {
 
   async function handleSave(event) {
     event.preventDefault();
+
     setSaving(true);
     setSaveMessage("");
     setError("");
@@ -101,12 +325,33 @@ export default function ProfilePage() {
         phone: updated?.phone || "",
         photo: null,
       });
+
       setIsEditing(false);
-      setSaveMessage("Perfil atualizado com sucesso.");
+      setSaveMessage(text.success);
     } catch (err) {
-      setError(err.message || "Erro ao atualizar perfil.");
+      setError(err.message || text.updateError);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRespondFamilyRequest(linkId, action) {
+    try {
+      setRespondingId(linkId);
+      setError("");
+      setSaveMessage("");
+
+      await respondFamilyLink(linkId, action);
+
+      setFamilyRequests((prev) => prev.filter((item) => item.id !== linkId));
+
+      setSaveMessage(
+        action === "APPROVE" ? text.approvedRequest : text.rejectedRequest
+      );
+    } catch (err) {
+      setError(err.message || text.updateError);
+    } finally {
+      setRespondingId(null);
     }
   }
 
@@ -117,147 +362,127 @@ export default function ProfilePage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Guilherme</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Perfil do Utilizador</h1>
-          <div className="pageSubtitle">
-            Consulta e gere as tuas informações de perfil
+          <div className="userArea">
+            {text.hello}, {firstName}
           </div>
         </div>
 
-        <div className="content">
+        <div className="content profileProPage">
           {loading && (
-            <div className="profileCardModern">
-              <h3 className="profileBlockTitle">A carregar...</h3>
-              <p className="profileMutedText">A obter os dados do perfil.</p>
+            <div className="profileProStateCard">
+              <h3>{text.loadingTitle}</h3>
+              <p>{text.loadingText}</p>
             </div>
           )}
 
           {error && !loading && (
-            <div className="profileCardModern">
-              <h3 className="profileBlockTitle">Erro</h3>
-              <p className="profileMutedText">{error}</p>
+            <div className="profileProError">
+              <strong>{text.error}</strong>
+              <span>{error}</span>
             </div>
           )}
 
           {!loading && !error && profile && (
             <>
               {saveMessage && (
-                <div className="profileNoticeOk">{saveMessage}</div>
+                <div className="profileProSuccess">{saveMessage}</div>
               )}
 
-              <div className="profileTopGrid">
-                <div className="profileCardModern profileMainCard">
-                  <div className="profileAvatarWrap">
-                    {profile.photo_url ? (
-                      <img
-                        src={profile.photo_url}
-                        alt="Foto de perfil"
-                        className="profileAvatarImage"
-                      />
-                    ) : (
-                      <div className="profileAvatarFallback">{initials}</div>
-                    )}
-                  </div>
+              <section className="profileProHero">
+                <div className="profileProHeroMain">
+                  <div className="profileProEyebrow">{text.eyebrow}</div>
 
-                  <h2 className="profileMainName">
-                    {profile.display_name || "Sem nome"}
-                  </h2>
+                  <h1 className="profileProTitle">{displayName}</h1>
 
-                  <div className="profileRoleBadge">
-                    {formatRole(profile.role)}
-                  </div>
+                  <p className="profileProSubtitle">{text.subtitle}</p>
 
-                  <div className="profilePrimaryActions">
+                  <div className="profileProHeroActions">
                     <button
                       type="button"
-                      className="mediumButton"
+                      className="profileProPrimaryBtn"
                       onClick={() => {
                         setIsEditing((prev) => !prev);
                         setSaveMessage("");
                       }}
                     >
-                      {isEditing ? "Cancelar edição" : "Editar perfil"}
+                      {isEditing ? text.closeEdit : text.editProfile}
                     </button>
+
+                    <Link to="/settings" className="profileProGhostBtn">
+                      {text.settings}
+                    </Link>
                   </div>
                 </div>
 
-                <div className="profileCardModern">
-                  <h3 className="profileBlockTitle">Informação pessoal</h3>
+                <div className="profileProIdentityCard">
+                  <div className="profileProAvatarFrame">
+                    {profile.photo_url ? (
+                      <img
+                        src={profile.photo_url}
+                        alt={text.profilePhotoAlt}
+                        className="profileProAvatarImage"
+                      />
+                    ) : (
+                      <div className="profileProAvatarFallback">{initials}</div>
+                    )}
+                  </div>
 
-                  <div className="profileInfoList">
-                    <div className="profileInfoItem">
-                      <span>Nome apresentado</span>
-                      <strong>{profile.display_name || "-"}</strong>
+                  <div className="profileProIdentityName">{displayName}</div>
+
+                  <div className="profileProRolePill">
+                    {formatRole(profile.role, text)}
+                  </div>
+
+                  <div className="profileProCompleteness">
+                    <div className="profileProCompletenessTop">
+                      <span>{text.completeness}</span>
+                      <strong>{completeness}%</strong>
                     </div>
 
-                    <div className="profileInfoItem">
-                      <span>Telefone</span>
-                      <strong>{profile.phone || "-"}</strong>
-                    </div>
-
-                    <div className="profileInfoItem">
-                      <span>Função</span>
-                      <strong>{formatRole(profile.role)}</strong>
+                    <div className="profileProProgressTrack">
+                      <div
+                        className="profileProProgressFill"
+                        style={{ width: `${completeness}%` }}
+                      />
                     </div>
                   </div>
                 </div>
-
-                <div className="profileCardModern">
-                  <h3 className="profileBlockTitle">Resumo</h3>
-
-                  <div className="profileInfoList">
-                    <div className="profileInfoItem">
-                      <span>Perfil ativo</span>
-                      <strong>Sim</strong>
-                    </div>
-
-                    <div className="profileInfoItem">
-                      <span>Foto carregada</span>
-                      <strong>{profile.photo_url ? "Sim" : "Não"}</strong>
-                    </div>
-
-                    <div className="profileInfoItem">
-                      <span>Estado</span>
-                      <strong>Disponível</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </section>
 
               {isEditing && (
-                <form className="profileEditCard" onSubmit={handleSave}>
-                  <h3 className="profileBlockTitle">Editar perfil</h3>
+                <form className="profileProEditCard" onSubmit={handleSave}>
+                  <div className="profileProEditHeader">
+                    <div>
+                      <h2>{text.editTitle}</h2>
+                      <p>{text.editText}</p>
+                    </div>
+                  </div>
 
-                  <div className="profileEditGrid">
-                    <div className="profileField">
-                      <label className="profileLabel">Nome apresentado</label>
+                  <div className="profileProFormGrid">
+                    <div className="profileProField">
+                      <label>{text.displayName}</label>
                       <input
-                        className="input"
                         name="display_name"
                         value={form.display_name}
                         onChange={handleChange}
-                        placeholder="Nome apresentado"
+                        placeholder={text.displayName}
                       />
                     </div>
 
-                    <div className="profileField">
-                      <label className="profileLabel">Telefone</label>
+                    <div className="profileProField">
+                      <label>{text.phone}</label>
                       <input
-                        className="input"
                         name="phone"
                         value={form.phone}
                         onChange={handleChange}
-                        placeholder="Telefone"
+                        placeholder={text.phone}
                       />
                     </div>
 
-                    <div className="profileField profileFieldWide">
-                      <label className="profileLabel">Foto de perfil</label>
+                    <div className="profileProField profileProFieldWide">
+                      <label>{text.profilePhoto}</label>
                       <input
-                        className="input"
                         type="file"
                         name="photo"
                         accept="image/*"
@@ -266,58 +491,186 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="profileEditActions">
+                  <div className="profileProEditActions">
                     <button
                       type="button"
-                      className="profileGhostLinkBtn profileGhostButton"
+                      className="profileProGhostBtn"
                       onClick={() => setIsEditing(false)}
                     >
-                      Cancelar
+                      {text.cancel}
                     </button>
 
                     <button
                       type="submit"
-                      className="mediumButton"
+                      className="profileProPrimaryBtn"
                       disabled={saving}
                     >
-                      {saving ? "A guardar..." : "Guardar alterações"}
+                      {saving ? text.saving : text.saveChanges}
                     </button>
                   </div>
                 </form>
               )}
 
-              <div className="profileBottomGrid">
-                <div className="profileCardModern">
-                  <h3 className="profileBlockTitle">Apresentação</h3>
-                  <p className="profileMutedText">
-                    Este perfil representa a tua conta dentro da plataforma
-                    RehabPlay. Os dados aqui mostrados são usados para
-                    identificação e personalização da experiência.
-                  </p>
-                </div>
+              <section className="profileProGrid">
+                <div className="profileProCard">
+                  <div className="profileProCardHeader">
+                    <h2>{text.personalInfo}</h2>
+                    <span>{text.mainData}</span>
+                  </div>
 
-                <div className="profileCardModern">
-                  <h3 className="profileBlockTitle">Ações rápidas</h3>
+                  <div className="profileProInfoList">
+                    <div className="profileProInfoItem">
+                      <span>{text.displayName}</span>
+                      <strong>{profile.display_name || "-"}</strong>
+                    </div>
 
-                  <div className="profileQuickActions">
-                    <Link to="/settings" className="profileGhostLinkBtn">
-                      Ir para definições
-                    </Link>
-                    <Link to="/dashboard" className="profileGhostLinkBtn">
-                      Voltar ao dashboard
-                    </Link>
+                    <div className="profileProInfoItem">
+                      <span>{text.phone}</span>
+                      <strong>{profile.phone || "-"}</strong>
+                    </div>
+
+                    <div className="profileProInfoItem">
+                      <span>{text.role}</span>
+                      <strong>{formatRole(profile.role, text)}</strong>
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                <div className="profileProCard">
+                  <div className="profileProCardHeader">
+                    <h2>{text.accountStatus}</h2>
+                    <span>{text.summary}</span>
+                  </div>
+
+                  <div className="profileProStatusGrid">
+                    <div className="profileProStatusBox">
+                      <span>{text.activeProfile}</span>
+                      <strong>{text.yes}</strong>
+                    </div>
+
+                    <div className="profileProStatusBox">
+                      <span>{text.uploadedPhoto}</span>
+                      <strong>{profile.photo_url ? text.yes : text.no}</strong>
+                    </div>
+
+                    <div className="profileProStatusBox">
+                      <span>{text.availability}</span>
+                      <strong>{text.active}</strong>
+                    </div>
+
+                    <div className="profileProStatusBox">
+                      <span>{text.accessType}</span>
+                      <strong>{formatRole(profile.role, text)}</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {profile.role === "PATIENT" && (
+                <section className="profileProCard profileFamilyRequestsCard">
+                  <div className="profileProCardHeader">
+                    <h2>{text.familyRequests}</h2>
+                    <span>{text.pending}</span>
+                  </div>
+
+                  <p className="profileProMiniNote">{text.familyRequestsSub}</p>
+
+                  {familyRequests.length === 0 ? (
+                    <div className="profileProMiniNote">
+                      {text.noFamilyRequests}
+                    </div>
+                  ) : (
+                    <div className="profileFamilyRequestList">
+                      {familyRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          className="profileFamilyRequestItem"
+                        >
+                          <div>
+                            <span>{text.requestFrom}</span>
+                            <strong>{getFamilyRequestName(request)}</strong>
+                          </div>
+
+                          <div className="profileFamilyRequestActions">
+                            <button
+                              type="button"
+                              className="profileProPrimaryBtn"
+                              disabled={respondingId === request.id}
+                              onClick={() =>
+                                handleRespondFamilyRequest(
+                                  request.id,
+                                  "APPROVE"
+                                )
+                              }
+                            >
+                              {text.approve}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="profileProGhostBtn"
+                              disabled={respondingId === request.id}
+                              onClick={() =>
+                                handleRespondFamilyRequest(
+                                  request.id,
+                                  "REJECT"
+                                )
+                              }
+                            >
+                              {text.reject}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              <section className="profileProBottomGrid">
+                <div className="profileProCard profileProAboutCard">
+                  <div className="profileProCardHeader">
+                    <h2>{text.presentation}</h2>
+                    <span>{text.context}</span>
+                  </div>
+
+                  <p>{getRoleDescription(profile.role, text)}</p>
+
+                  <div className="profileProMiniNote">{text.miniNote}</div>
+                </div>
+
+                <div className="profileProCard">
+                  <div className="profileProCardHeader">
+                    <h2>{text.quickActions}</h2>
+                    <span>{text.shortcuts}</span>
+                  </div>
+
+                  <div className="profileProActionList">
+                    <Link to="/settings" className="profileProActionLink">
+                      {text.goSettings}
+                    </Link>
+
+                    <Link to="/dashboard" className="profileProActionLink">
+                      {text.backDashboard}
+                    </Link>
+
+                    <button
+                      type="button"
+                      className="profileProActionButton"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      {text.updateInfo}
+                    </button>
+                  </div>
+                </div>
+              </section>
             </>
           )}
 
           {!loading && !error && !profile && (
-            <div className="profileCardModern">
-              <h3 className="profileBlockTitle">Sem dados</h3>
-              <p className="profileMutedText">
-                Não foi possível encontrar informações de perfil.
-              </p>
+            <div className="profileProStateCard">
+              <h3>{text.noData}</h3>
+              <p>{text.noDataText}</p>
             </div>
           )}
         </div>

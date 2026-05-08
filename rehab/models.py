@@ -2,8 +2,42 @@ from django.conf import settings
 from django.db import models
 
 class Area(models.TextChoices):
-    SHOULDER = "SHOULDER", "Ombro"
+    HEAD = "HEAD", "Cabeça"
+    FACE = "FACE", "Face"
+    NECK = "NECK", "Pescoço"
 
+    SHOULDER = "SHOULDER", "Ombro"
+    ARM = "ARM", "Braço"
+    UPPER_ARM = "UPPER_ARM", "Braço superior"
+    ELBOW = "ELBOW", "Cotovelo"
+    FOREARM = "FOREARM", "Antebraço"
+    WRIST = "WRIST", "Pulso"
+    HAND = "HAND", "Mão"
+    FINGERS = "FINGERS", "Dedos"
+
+    CHEST = "CHEST", "Peito"
+    BACK = "BACK", "Costas"
+    UPPER_BACK = "UPPER_BACK", "Costas superiores"
+    LOWER_BACK = "LOWER_BACK", "Lombar"
+    CORE = "CORE", "Core"
+    ABDOMEN = "ABDOMEN", "Abdómen"
+
+    HIP = "HIP", "Anca"
+    GLUTES = "GLUTES", "Glúteos"
+    LEG = "LEG", "Perna"
+    THIGH = "THIGH", "Coxa"
+    HAMSTRINGS = "HAMSTRINGS", "Posterior da coxa"
+    QUADRICEPS = "QUADRICEPS", "Quadríceps"
+    KNEE = "KNEE", "Joelho"
+    CALF = "CALF", "Gémeos"
+    ANKLE = "ANKLE", "Tornozelo"
+    FOOT = "FOOT", "Pé"
+    TOES = "TOES", "Dedos do pé"
+
+    FULL_BODY = "FULL_BODY", "Corpo inteiro"
+    BALANCE = "BALANCE", "Equilíbrio"
+    MOBILITY = "MOBILITY", "Mobilidade geral"
+    
 class Difficulty(models.TextChoices):
     EASY = "EASY", "Fácil"
     MEDIUM = "MEDIUM", "Média"
@@ -11,8 +45,50 @@ class Difficulty(models.TextChoices):
 
 class Exercise(models.Model):
     name = models.CharField(max_length=140)
+    name_pt = models.CharField(max_length=140, blank=True)
+    name_en = models.CharField(max_length=140, blank=True)
+
     area = models.CharField(max_length=32, choices=Area.choices)
+
     description = models.TextField(blank=True)
+    description_pt = models.TextField(blank=True)
+    description_en = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        
+
+        area_translation_en = {
+            "Ombro": "Shoulder",
+            "Braço": "Arm",
+            "Perna": "Leg",
+            "Gémeos": "Calf",
+            "Joelho": "Knee",
+            "Costas": "Back",
+            "Peito": "Chest",
+            "Pescoço": "Neck",
+            "Core": "Core",
+            "Corpo Inteiro": "Full Body",
+        }
+
+        if not self.name_pt:
+            self.name_pt = self.name
+
+        if not self.name_en:
+            self.name_en = self.name
+
+            for pt, en in area_translation_en.items():
+                self.name_en = self.name_en.replace(pt, en)
+
+        if not self.description_pt:
+            self.description_pt = self.description
+
+        if not self.description_en:
+            self.description_en = self.description
+
+            for pt, en in area_translation_en.items():
+                self.description_en = self.description_en.replace(pt, en)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

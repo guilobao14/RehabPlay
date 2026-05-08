@@ -1,6 +1,27 @@
 import { NavLink } from "react-router-dom";
+import { useAppPreferences } from "../context/AppPreferencesContext.jsx";
+
+const therapistSubnavText = {
+  "pt-PT": {
+    plans: "Gestão de Planos",
+    exercises: "Exercícios",
+    media: "Recursos Multimédia",
+    challenges: "Desafios",
+    progress: "Progresso dos Pacientes",
+  },
+  en: {
+    plans: "Plan Management",
+    exercises: "Exercises",
+    media: "Media Resources",
+    challenges: "Challenges",
+    progress: "Patient Progress",
+  },
+};
 
 export default function TherapistSubnav() {
+  const { language } = useAppPreferences();
+  const text = therapistSubnavText[language] || therapistSubnavText["pt-PT"];
+
   return (
     <div className="therapistSubnav">
       <NavLink
@@ -9,7 +30,7 @@ export default function TherapistSubnav() {
           `therapistSubnavLink ${isActive ? "therapistSubnavLinkActive" : ""}`
         }
       >
-        Gestão de Planos
+        {text.plans}
       </NavLink>
 
       <NavLink
@@ -18,7 +39,7 @@ export default function TherapistSubnav() {
           `therapistSubnavLink ${isActive ? "therapistSubnavLinkActive" : ""}`
         }
       >
-        Exercícios
+        {text.exercises}
       </NavLink>
 
       <NavLink
@@ -27,7 +48,16 @@ export default function TherapistSubnav() {
           `therapistSubnavLink ${isActive ? "therapistSubnavLinkActive" : ""}`
         }
       >
-        Recursos Multimédia
+        {text.media}
+      </NavLink>
+
+      <NavLink
+        to="/therapist/challenges"
+        className={({ isActive }) =>
+          `therapistSubnavLink ${isActive ? "therapistSubnavLinkActive" : ""}`
+        }
+      >
+        {text.challenges}
       </NavLink>
 
       <NavLink
@@ -36,7 +66,7 @@ export default function TherapistSubnav() {
           `therapistSubnavLink ${isActive ? "therapistSubnavLinkActive" : ""}`
         }
       >
-        Progresso dos Pacientes
+        {text.progress}
       </NavLink>
     </div>
   );

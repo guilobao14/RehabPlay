@@ -22,18 +22,46 @@ class AccountSettings(models.Model):
     theme = models.CharField(max_length=16, default="light")
     language = models.CharField(max_length=16, default="pt-PT")
 
+class FamilyLinkStatus(models.TextChoices):
+    PENDING = "PENDING", "Pendente"
+    APPROVED = "APPROVED", "Aprovado"
+    REJECTED = "REJECTED", "Rejeitado"
+
+
 class FamilyLink(models.Model):
-    patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="family_links_as_patient")
-    family = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="family_links_as_family")
+    patient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="family_links_as_patient",
+    )
+    family = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="family_links_as_family",
+    )
+
+    status = models.CharField(
+        max_length=16,
+        choices=FamilyLinkStatus.choices,
+        default=FamilyLinkStatus.PENDING,
+    )
 
     can_view_progress = models.BooleanField(default=True)
     can_view_messages = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="family_links_created")
+    responded_at = models.DateTimeField(null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="family_links_created",
+    )
 
     class Meta:
         unique_together = [("patient", "family")]
 
     def __str__(self):
-        return f"{self.family.username} ↔ {self.patient.username}"
+        return f"{self.family.username} ↔ {self.patient.username} ({self.status})"

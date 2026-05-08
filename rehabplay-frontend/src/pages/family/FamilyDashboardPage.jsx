@@ -3,15 +3,135 @@ import { Link } from "react-router-dom";
 import {
   fetchFamilyLinks,
   fetchFamilyPatientProgress,
-  fetchFamilyPatientThreads,
 } from "../../api/family";
+import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
 
-function formatDateTime(value) {
+const familyDashText = {
+  "pt-PT": {
+    hello: "Olá",
+    family: "Familiar",
+    title: "Dashboard Familiar",
+    subtitle:
+      "Acompanha o progresso autorizado do paciente, mantendo a privacidade clínica protegida.",
+    loadingTitle: "A carregar...",
+    loadingText: "A obter ligações familiares e progresso disponível.",
+    errorText: "Erro ao carregar dashboard familiar.",
+
+    linkedPatient: "Paciente associado",
+    activeLink: "Ligação familiar ativa e acompanhamento autorizado.",
+    noActiveLink: "Ainda não existe ligação familiar ativa.",
+    generalStatus: "Estado geral",
+    monitoring: "Em acompanhamento",
+    noRecords: "Sem registos",
+    generalStatusText: "Resumo calculado a partir dos registos disponíveis.",
+    lastActivity: "Última atividade",
+    lastActivityText: "Data do último registo de progresso visível.",
+
+    currentProgress: "Progresso atual",
+    summary: "Resumo",
+    monitoringLabel: "Acompanhamento",
+    availableRecords: "registos disponíveis para consulta",
+    weeklySummary: "Resumo semanal",
+    thisWeekRecords: "Registos esta semana",
+    totalTime: "Tempo total",
+    differentExercises: "Exercícios diferentes",
+    privacyStatus: "Privacidade",
+    important: "Importante",
+    progressAllowed: "Consulta de progresso autorizada",
+    progressDenied: "Sem acesso ao progresso",
+    messagesPrivate:
+      "Mensagens entre paciente e terapeuta não disponíveis para familiares",
+    familyLinkActive: "Ligação familiar ativa",
+    noFamilyLink: "Sem ligação ativa",
+
+    availableActions: "Ações disponíveis",
+    actionsSub: "Acesso limitado ao acompanhamento autorizado",
+    manageLinks: "Gerir ligações",
+    manageLinksText: "Consultar autorizações associadas ao paciente.",
+    viewProgress: "Ver progresso",
+    viewProgressText: "Acompanhar evolução semanal e histórico resumido.",
+
+    privacyNotice: "Privacidade clínica",
+    privacyTitle: "Mensagens protegidas",
+    privacyText:
+      "Por motivos de privacidade e confidencialidade, familiares não têm acesso às conversas entre paciente e terapeuta.",
+    accessSummary: "Resumo de acesso",
+    permissions: "Permissões",
+    limited: "Limitadas",
+    progressConsultation: "Consulta de progresso",
+    messageConsultation: "Consulta de mensagens",
+    notAllowed: "Não permitido",
+    yes: "Sim",
+    no: "Não",
+    minutes: "min",
+  },
+
+  en: {
+    hello: "Hi",
+    family: "Family",
+    title: "Family Dashboard",
+    subtitle:
+      "Monitor the patient’s authorized progress while keeping clinical privacy protected.",
+    loadingTitle: "Loading...",
+    loadingText: "Fetching family links and available progress.",
+    errorText: "Error loading family dashboard.",
+
+    linkedPatient: "Linked patient",
+    activeLink: "Active family link and authorized monitoring.",
+    noActiveLink: "There is no active family link yet.",
+    generalStatus: "General status",
+    monitoring: "Being monitored",
+    noRecords: "No records",
+    generalStatusText: "Summary calculated from available records.",
+    lastActivity: "Last activity",
+    lastActivityText: "Date of the latest visible progress record.",
+
+    currentProgress: "Current progress",
+    summary: "Summary",
+    monitoringLabel: "Monitoring",
+    availableRecords: "records available for review",
+    weeklySummary: "Weekly summary",
+    thisWeekRecords: "Records this week",
+    totalTime: "Total time",
+    differentExercises: "Different exercises",
+    privacyStatus: "Privacy",
+    important: "Important",
+    progressAllowed: "Progress review authorized",
+    progressDenied: "No access to progress",
+    messagesPrivate:
+      "Messages between patient and therapist are not available to family members",
+    familyLinkActive: "Active family link",
+    noFamilyLink: "No active link",
+
+    availableActions: "Available actions",
+    actionsSub: "Limited access to authorized monitoring",
+    manageLinks: "Manage links",
+    manageLinksText: "Review authorizations associated with the patient.",
+    viewProgress: "View progress",
+    viewProgressText: "Track weekly evolution and summarized history.",
+
+    privacyNotice: "Clinical privacy",
+    privacyTitle: "Protected messages",
+    privacyText:
+      "For privacy and confidentiality reasons, family members cannot access conversations between patient and therapist.",
+    accessSummary: "Access summary",
+    permissions: "Permissions",
+    limited: "Limited",
+    progressConsultation: "Progress review",
+    messageConsultation: "Message review",
+    notAllowed: "Not allowed",
+    yes: "Yes",
+    no: "No",
+    minutes: "min",
+  },
+};
+
+function formatDateTime(value, language) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
 
-  return date.toLocaleString("pt-PT", {
+  return date.toLocaleString(language === "en" ? "en-GB" : "pt-PT", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -20,21 +140,23 @@ function formatDateTime(value) {
   });
 }
 
-function getWeekLabel(dateString) {
+function getWeekLabel(dateString, language) {
   const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "Sem data";
+  if (Number.isNaN(date.getTime())) return language === "en" ? "No date" : "Sem data";
 
   const startOfYear = new Date(date.getFullYear(), 0, 1);
   const diffDays = Math.floor((date - startOfYear) / 86400000);
   const week = Math.ceil((diffDays + startOfYear.getDay() + 1) / 7);
 
-  return `Semana ${week}`;
+  return `${language === "en" ? "Week" : "Semana"} ${week}`;
 }
 
 export default function FamilyDashboardPage() {
+  const { language } = useAppPreferences();
+  const text = familyDashText[language] || familyDashText["pt-PT"];
+
   const [links, setLinks] = useState([]);
   const [progressEntries, setProgressEntries] = useState([]);
-  const [threads, setThreads] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,6 +164,8 @@ export default function FamilyDashboardPage() {
   useEffect(() => {
     async function loadDashboard() {
       try {
+        setError("");
+
         const linksData = await fetchFamilyLinks();
         const safeLinks = Array.isArray(linksData) ? linksData : [];
         setLinks(safeLinks);
@@ -54,24 +178,22 @@ export default function FamilyDashboardPage() {
             firstLink.patient_user_id;
 
           if (patientId) {
-            const [progressData, threadsData] = await Promise.all([
-              fetchFamilyPatientProgress(patientId).catch(() => []),
-              fetchFamilyPatientThreads(patientId).catch(() => []),
-            ]);
+            const progressData = await fetchFamilyPatientProgress(patientId).catch(
+              () => []
+            );
 
             setProgressEntries(Array.isArray(progressData) ? progressData : []);
-            setThreads(Array.isArray(threadsData) ? threadsData : []);
           }
         }
       } catch (err) {
-        setError(err.message || "Erro ao carregar dashboard familiar.");
+        setError(err.message || text.errorText);
       } finally {
         setLoading(false);
       }
     }
 
     loadDashboard();
-  }, []);
+  }, [text.errorText]);
 
   const activeLink = links[0] || null;
 
@@ -79,7 +201,7 @@ export default function FamilyDashboardPage() {
     activeLink?.patient_display_name ||
     activeLink?.patient_username ||
     activeLink?.patient_name ||
-    "Sem paciente associado";
+    (language === "en" ? "No linked patient" : "Sem paciente associado");
 
   const totalEntries = progressEntries.length;
 
@@ -91,12 +213,12 @@ export default function FamilyDashboardPage() {
   }, [progressEntries]);
 
   const weeklyCount = useMemo(() => {
-    const currentWeek = getWeekLabel(new Date().toISOString());
+    const currentWeek = getWeekLabel(new Date().toISOString(), language);
 
     return progressEntries.filter(
-      (entry) => getWeekLabel(entry.performed_at) === currentWeek
+      (entry) => getWeekLabel(entry.performed_at, language) === currentWeek
     ).length;
-  }, [progressEntries]);
+  }, [progressEntries, language]);
 
   const uniqueExercises = useMemo(() => {
     return new Set(
@@ -112,8 +234,8 @@ export default function FamilyDashboardPage() {
   const latestEntry = progressEntries[0] || null;
 
   const canViewProgress =
-    activeLink?.can_view_progress === true || activeLink?.can_view_progress === undefined;
-  const canViewMessages = activeLink?.can_view_messages === true;
+    activeLink?.can_view_progress === true ||
+    activeLink?.can_view_progress === undefined;
 
   return (
     <div className="appPage">
@@ -122,219 +244,214 @@ export default function FamilyDashboardPage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Familiar</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Dashboard Familiar</h1>
-          <div className="pageSubtitle">
-            Acompanhamento do progresso com permissões limitadas
+          <div className="userArea">
+            {text.hello}, {text.family}
           </div>
         </div>
 
-        <div className="content">
-          {loading && (
-            <div className="familyCard">
-              <h3 className="familyCardTitle">A carregar...</h3>
-              <p className="familyNoteText">
-                A obter ligações, progresso e mensagens disponíveis.
+        <main className="familyDashPrimePage">
+          <section className="familyDashHero">
+            <div className="familyDashHeroContent">
+              <span>{text.privacyNotice}</span>
+              <h1>{text.title}</h1>
+              <p>{text.subtitle}</p>
+            </div>
+
+            <div className="familyDashHeroPanel">
+              <span>{text.linkedPatient}</span>
+              <strong>{patientName}</strong>
+              <p>
+                {latestEntry
+                  ? formatDateTime(latestEntry.performed_at, language)
+                  : "-"}
               </p>
+            </div>
+          </section>
+
+          {loading && (
+            <div className="familyDashState">
+              <h3>{text.loadingTitle}</h3>
+              <p>{text.loadingText}</p>
             </div>
           )}
 
-          {error && !loading && (
-            <div className="theraNoticeError">{error}</div>
-          )}
+          {error && !loading && <div className="theraNoticeError">{error}</div>}
 
           {!loading && !error && (
             <>
-              <div className="familyHeroGrid">
-                <div className="familyHeroCard">
-                  <div className="familyHeroLabel">Paciente associado</div>
-                  <div className="familyHeroValue">{patientName}</div>
-                  <div className="familyHeroText">
-                    {activeLink
-                      ? "Ligação familiar ativa e acompanhamento autorizado."
-                      : "Ainda não existe ligação familiar ativa."}
-                  </div>
+              <section className="familyDashStats">
+                <div>
+                  <span>{text.linkedPatient}</span>
+                  <strong>{patientName}</strong>
+                  <p>{activeLink ? text.activeLink : text.noActiveLink}</p>
                 </div>
 
-                <div className="familyHeroCard">
-                  <div className="familyHeroLabel">Estado geral</div>
-                  <div className="familyHeroValue">
-                    {totalEntries ? "Em acompanhamento" : "Sem registos"}
-                  </div>
-                  <div className="familyHeroText">
-                    Resumo calculado a partir dos registos disponíveis.
-                  </div>
+                <div>
+                  <span>{text.generalStatus}</span>
+                  <strong>{totalEntries ? text.monitoring : text.noRecords}</strong>
+                  <p>{text.generalStatusText}</p>
                 </div>
 
-                <div className="familyHeroCard">
-                  <div className="familyHeroLabel">Última atividade</div>
-                  <div className="familyHeroValue">
-                    {latestEntry ? formatDateTime(latestEntry.performed_at) : "-"}
-                  </div>
-                  <div className="familyHeroText">
-                    Data do último registo de progresso visível.
-                  </div>
+                <div>
+                  <span>{text.lastActivity}</span>
+                  <strong>
+                    {latestEntry
+                      ? formatDateTime(latestEntry.performed_at, language)
+                      : "-"}
+                  </strong>
+                  <p>{text.lastActivityText}</p>
                 </div>
-              </div>
+              </section>
 
-              <div className="familyTopGrid">
-                <div className="familyCard familyProgressCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">Progresso atual</h3>
-                    <span className="familySmallTag">Resumo</span>
+              <section className="familyDashMainGrid">
+                <div className="familyDashProgressCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>{text.currentProgress}</h2>
+                      <span>{text.summary}</span>
+                    </div>
                   </div>
 
-                  <div className="familyProgressValue">{progressPercent}%</div>
-                  <div className="familyProgressText">Acompanhamento</div>
-
-                  <div className="familyProgressBar">
-                    <div
-                      className="familyProgressFill"
-                      style={{ width: `${progressPercent}%` }}
-                    />
+                  <div className="familyDashProgressValue">
+                    {progressPercent}%
                   </div>
 
-                  <div className="familyMutedLine">
-                    {totalEntries} registos disponíveis para consulta
+                  <div className="familyDashProgressText">
+                    {text.monitoringLabel}
                   </div>
+
+                  <div className="familyDashProgressBar">
+                    <div style={{ width: `${progressPercent}%` }} />
+                  </div>
+
+                  <p>
+                    {totalEntries} {text.availableRecords}
+                  </p>
                 </div>
 
-                <div className="familyCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">Resumo semanal</h3>
-                    <span className="familySmallTag">Acompanhamento</span>
+                <div className="familyDashCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>{text.weeklySummary}</h2>
+                      <span>{text.monitoringLabel}</span>
+                    </div>
                   </div>
 
-                  <div className="familyInfoList">
-                    <div className="familyInfoItem">
-                      <span>Registos esta semana</span>
+                  <div className="familyDashInfoList">
+                    <div>
+                      <span>{text.thisWeekRecords}</span>
                       <strong>{weeklyCount}</strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Tempo total</span>
-                      <strong>{totalMinutes} min</strong>
+
+                    <div>
+                      <span>{text.totalTime}</span>
+                      <strong>
+                        {totalMinutes} {text.minutes}
+                      </strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Exercícios diferentes</span>
+
+                    <div>
+                      <span>{text.differentExercises}</span>
                       <strong>{uniqueExercises}</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="familyCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">Alertas</h3>
-                    <span className="familySmallTag">Importante</span>
+                <div className="familyDashPrivacyCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>{text.privacyStatus}</h2>
+                      <span>{text.important}</span>
+                    </div>
                   </div>
 
-                  <div className="familyAlertsList">
-                    <div className="familyAlertItem">
-                      <div className="familyAlertDot" />
-                      <span>
+                  <div className="familyDashAlertList">
+                    <div>
+                      <span />
+                      <p>
                         {canViewProgress
-                          ? "Consulta de progresso autorizada"
-                          : "Sem acesso ao progresso"}
-                      </span>
+                          ? text.progressAllowed
+                          : text.progressDenied}
+                      </p>
                     </div>
 
-                    <div className="familyAlertItem">
-                      <div className="familyAlertDot" />
-                      <span>
-                        {canViewMessages
-                          ? `${threads.length} thread(s) disponível(is)`
-                          : "Sem acesso às mensagens"}
-                      </span>
+                    <div>
+                      <span />
+                      <p>{text.messagesPrivate}</p>
                     </div>
 
-                    <div className="familyAlertItem">
-                      <div className="familyAlertDot" />
-                      <span>
-                        {activeLink ? "Ligação familiar ativa" : "Sem ligação ativa"}
-                      </span>
+                    <div>
+                      <span />
+                      <p>{activeLink ? text.familyLinkActive : text.noFamilyLink}</p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
-              <div className="familySectionHeader">
-                <h2 className="familySectionTitle">Ações disponíveis</h2>
-                <p className="familySectionSub">
-                  Acesso limitado a acompanhamento e consulta de informação
-                </p>
-              </div>
+              <section className="familyDashSectionTitle">
+                <div>
+                  <h2>{text.availableActions}</h2>
+                  <p>{text.actionsSub}</p>
+                </div>
+              </section>
 
-              <div className="familyActionsGrid">
-                <Link to="/family/links" className="familyActionCard">
-                  <div className="familyActionIcon">🔗</div>
-                  <div className="familyActionTitle">Gerir links</div>
-                  <div className="familyActionText">
-                    Consultar e acompanhar a ligação autorizada ao paciente.
-                  </div>
+              <section className="familyDashActions">
+                <Link to="/family/links" className="familyDashActionCard">
+                  <div>🔗</div>
+                  <h3>{text.manageLinks}</h3>
+                  <p>{text.manageLinksText}</p>
                 </Link>
 
-                <Link to="/family/progress" className="familyActionCard">
-                  <div className="familyActionIcon">📈</div>
-                  <div className="familyActionTitle">Ver progresso</div>
-                  <div className="familyActionText">
-                    Acompanhar a evolução semanal e o histórico resumido.
-                  </div>
+                <Link to="/family/progress" className="familyDashActionCard">
+                  <div>📈</div>
+                  <h3>{text.viewProgress}</h3>
+                  <p>{text.viewProgressText}</p>
                 </Link>
+              </section>
 
-                <Link to="/messages" className="familyActionCard">
-                  <div className="familyActionIcon">💬</div>
-                  <div className="familyActionTitle">Mensagens</div>
-                  <div className="familyActionText">
-                    Consultar conversas dentro das permissões disponíveis.
-                  </div>
-                </Link>
-              </div>
-
-              <div className="familyBottomGrid">
-                <div className="familyCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">Observação geral</h3>
-                  </div>
-
-                  <div className="familyNoteBox">
-                    <div className="familyNoteTitle">
-                      {totalEntries
-                        ? "Existe atividade registada"
-                        : "Ainda não existem registos suficientes"}
+              <section className="familyDashBottom">
+                <div className="familyDashCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>{text.privacyTitle}</h2>
                     </div>
-                    <div className="familyNoteText">
-                      O acompanhamento familiar ajuda a reforçar motivação,
-                      rotina e compromisso com o plano definido.
-                    </div>
+                  </div>
+
+                  <div className="familyDashNote">
+                    <strong>{text.privacyTitle}</strong>
+                    <p>{text.privacyText}</p>
                   </div>
                 </div>
 
-                <div className="familyCard">
-                  <div className="familyCardHeader">
-                    <h3 className="familyCardTitle">Resumo de acesso</h3>
+                <div className="familyDashCard">
+                  <div className="familyDashCardHeader">
+                    <div>
+                      <h2>{text.accessSummary}</h2>
+                    </div>
                   </div>
 
-                  <div className="familyInfoList">
-                    <div className="familyInfoItem">
-                      <span>Permissões</span>
-                      <strong>Limitadas</strong>
+                  <div className="familyDashInfoList">
+                    <div>
+                      <span>{text.permissions}</span>
+                      <strong>{text.limited}</strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Consulta de progresso</span>
-                      <strong>{canViewProgress ? "Sim" : "Não"}</strong>
+
+                    <div>
+                      <span>{text.progressConsultation}</span>
+                      <strong>{canViewProgress ? text.yes : text.no}</strong>
                     </div>
-                    <div className="familyInfoItem">
-                      <span>Consulta de mensagens</span>
-                      <strong>{canViewMessages ? "Sim" : "Não"}</strong>
+
+                    <div>
+                      <span>{text.messageConsultation}</span>
+                      <strong>{text.notAllowed}</strong>
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

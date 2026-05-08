@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import TherapistSubnav from "../../components/TherapistSubnav";
 import {
@@ -7,8 +7,190 @@ import {
   updateExercise,
   deleteExercise,
 } from "../../api/therapist";
+import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
+
+const exerciseText = {
+  "pt-PT": {
+    hello: "Olá",
+    userFallback: "Terapeuta",
+    title: "Gestão de Exercícios",
+    subtitle:
+      "Cria, edita e organiza exercícios terapêuticos para serem usados nos planos de reabilitação.",
+    loading: "A carregar exercícios...",
+    loadError: "Erro ao carregar exercícios.",
+    totalExercises: "Exercícios totais",
+    filteredResults: "Resultados filtrados",
+    coveredAreas: "Áreas cobertas",
+    newExercise: "Novo exercício",
+    editExercise: "Editar exercício",
+    formHelp:
+      "Preenche nome e descrição em português e inglês para a aplicação mostrar o conteúdo no idioma certo.",
+    namePt: "Nome PT",
+    nameEn: "Nome EN",
+    area: "Área",
+    descriptionPt: "Descrição PT",
+    descriptionEn: "Descrição EN",
+    namePtPlaceholder: "Ex: Elevação de braço",
+    nameEnPlaceholder: "Example: Arm raise",
+    areaPlaceholder: "Ex: Perna ou LEG",
+    descriptionPtPlaceholder: "Descrição em português",
+    descriptionEnPlaceholder: "Description in English",
+    saving: "A guardar...",
+    create: "Criar exercício",
+    saveChanges: "Guardar alterações",
+    cancel: "Cancelar",
+    searchPlaceholder: "Pesquisar exercício...",
+    all: "Todos",
+    listTitle: "Lista de exercícios",
+    listSubtitle: "Gere o catálogo disponível para criação de planos.",
+    exercise: "Exercício",
+    description: "Descrição",
+    actions: "Ações",
+    edit: "Editar",
+    remove: "Remover",
+    noResults: "Não foram encontrados exercícios com estes filtros.",
+    confirmDelete: "Queres mesmo remover este exercício?",
+    createSuccess: "Exercício criado com sucesso.",
+    updateSuccess: "Exercício atualizado com sucesso.",
+    deleteSuccess: "Exercício removido com sucesso.",
+    saveError: "Erro ao guardar exercício.",
+    deleteError: "Erro ao remover exercício.",
+    quickSummary: "Resumo rápido",
+    systemExercises: "Exercícios no sistema",
+    differentAreas: "Áreas diferentes",
+    visibleResults: "Resultados visíveis",
+    quickActions: "Ações rápidas",
+    refreshList: "Atualizar lista",
+  },
+
+  en: {
+    hello: "Hi",
+    userFallback: "Therapist",
+    title: "Exercise Management",
+    subtitle:
+      "Create, edit and organize therapeutic exercises to be used in rehabilitation plans.",
+    loading: "Loading exercises...",
+    loadError: "Error loading exercises.",
+    totalExercises: "Total exercises",
+    filteredResults: "Filtered results",
+    coveredAreas: "Covered areas",
+    newExercise: "New exercise",
+    editExercise: "Edit exercise",
+    formHelp:
+      "Fill in the name and description in Portuguese and English so the app shows the right content in each language.",
+    namePt: "Name PT",
+    nameEn: "Name EN",
+    area: "Area",
+    descriptionPt: "Description PT",
+    descriptionEn: "Description EN",
+    namePtPlaceholder: "Ex: Elevação de braço",
+    nameEnPlaceholder: "Example: Arm raise",
+    areaPlaceholder: "Example: Leg or LEG",
+    descriptionPtPlaceholder: "Descrição em português",
+    descriptionEnPlaceholder: "Description in English",
+    saving: "Saving...",
+    create: "Create exercise",
+    saveChanges: "Save changes",
+    cancel: "Cancel",
+    searchPlaceholder: "Search exercise...",
+    all: "All",
+    listTitle: "Exercise list",
+    listSubtitle: "Manage the catalog available for plan creation.",
+    exercise: "Exercise",
+    description: "Description",
+    actions: "Actions",
+    edit: "Edit",
+    remove: "Remove",
+    noResults: "No exercises were found with these filters.",
+    confirmDelete: "Do you really want to remove this exercise?",
+    createSuccess: "Exercise created successfully.",
+    updateSuccess: "Exercise updated successfully.",
+    deleteSuccess: "Exercise removed successfully.",
+    saveError: "Error saving exercise.",
+    deleteError: "Error removing exercise.",
+    quickSummary: "Quick summary",
+    systemExercises: "Exercises in the system",
+    differentAreas: "Different areas",
+    visibleResults: "Visible results",
+    quickActions: "Quick actions",
+    refreshList: "Refresh list",
+  },
+};
+
+function getExerciseName(exercise, language) {
+  if (language === "en") {
+    return exercise.name_en || exercise.name || exercise.name_pt || "-";
+  }
+
+  return exercise.name_pt || exercise.name || exercise.name_en || "-";
+}
+
+function getExerciseDescription(exercise, language) {
+  if (language === "en") {
+    return (
+      exercise.description_en ||
+      exercise.description ||
+      exercise.description_pt ||
+      "-"
+    );
+  }
+
+  return (
+    exercise.description_pt ||
+    exercise.description ||
+    exercise.description_en ||
+    "-"
+  );
+}
+
+function getAreaLabel(exercise, language) {
+  if (language === "pt-PT") {
+    return exercise.area_display || exercise.area || "-";
+  }
+
+  const areaMap = {
+    HEAD: "Head",
+    FACE: "Face",
+    NECK: "Neck",
+    SHOULDER: "Shoulder",
+    ARM: "Arm",
+    UPPER_ARM: "Upper arm",
+    ELBOW: "Elbow",
+    FOREARM: "Forearm",
+    WRIST: "Wrist",
+    HAND: "Hand",
+    FINGERS: "Fingers",
+    CHEST: "Chest",
+    BACK: "Back",
+    UPPER_BACK: "Upper back",
+    LOWER_BACK: "Lower back",
+    CORE: "Core",
+    ABDOMEN: "Abdomen",
+    HIP: "Hip",
+    GLUTES: "Glutes",
+    LEG: "Leg",
+    THIGH: "Thigh",
+    HAMSTRINGS: "Hamstrings",
+    QUADRICEPS: "Quadriceps",
+    KNEE: "Knee",
+    CALF: "Calf",
+    ANKLE: "Ankle",
+    FOOT: "Foot",
+    TOES: "Toes",
+    FULL_BODY: "Full body",
+    BALANCE: "Balance",
+    MOBILITY: "Mobility",
+  };
+
+  return areaMap[exercise.area] || exercise.area || "-";
+}
 
 export default function ExerciseCrudPage() {
+  const formRef = useRef(null);
+
+  const { language } = useAppPreferences();
+  const text = exerciseText[language] || exerciseText["pt-PT"];
+
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,15 +198,18 @@ export default function ExerciseCrudPage() {
   const [success, setSuccess] = useState("");
 
   const [search, setSearch] = useState("");
-  const [activeArea, setActiveArea] = useState("Todos");
+  const [activeArea, setActiveArea] = useState("ALL");
 
   const [formMode, setFormMode] = useState("create");
   const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
-    name: "",
+    name_pt: "",
+    name_en: "",
     area: "",
     description: "",
+    description_pt: "",
+    description_en: "",
   });
 
   useEffect(() => {
@@ -34,10 +219,12 @@ export default function ExerciseCrudPage() {
   async function loadExercises() {
     try {
       setLoading(true);
+      setError("");
+
       const data = await fetchExercises();
       setExercises(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err.message || "Erro ao carregar exercícios.");
+      setError(err.message || text.loadError);
     } finally {
       setLoading(false);
     }
@@ -45,25 +232,55 @@ export default function ExerciseCrudPage() {
 
   const areaOptions = useMemo(() => {
     const areas = [...new Set(exercises.map((item) => item.area).filter(Boolean))];
-    return ["Todos", ...areas];
-  }, [exercises]);
+
+    return [
+      {
+        value: "ALL",
+        label: text.all,
+      },
+      ...areas.map((area) => {
+        const example = exercises.find((item) => item.area === area);
+
+        return {
+          value: area,
+          label: getAreaLabel(example || { area }, language),
+        };
+      }),
+    ];
+  }, [exercises, language, text.all]);
 
   const filteredExercises = useMemo(() => {
-    return exercises.filter((exercise) => {
-      const matchesSearch =
-        !search.trim() ||
-        exercise.name?.toLowerCase().includes(search.toLowerCase()) ||
-        exercise.description?.toLowerCase().includes(search.toLowerCase());
+    const q = search.trim().toLowerCase();
 
-      const matchesArea =
-        activeArea === "Todos" || exercise.area === activeArea;
+    return exercises.filter((exercise) => {
+      const nameToShow = getExerciseName(exercise, language).toLowerCase();
+      const descriptionToShow = getExerciseDescription(
+        exercise,
+        language
+      ).toLowerCase();
+      const areaToShow = getAreaLabel(exercise, language).toLowerCase();
+
+      const matchesSearch =
+        !q ||
+        nameToShow.includes(q) ||
+        descriptionToShow.includes(q) ||
+        areaToShow.includes(q) ||
+        exercise.name?.toLowerCase().includes(q) ||
+        exercise.name_pt?.toLowerCase().includes(q) ||
+        exercise.name_en?.toLowerCase().includes(q) ||
+        exercise.description?.toLowerCase().includes(q) ||
+        exercise.description_pt?.toLowerCase().includes(q) ||
+        exercise.description_en?.toLowerCase().includes(q);
+
+      const matchesArea = activeArea === "ALL" || exercise.area === activeArea;
 
       return matchesSearch && matchesArea;
     });
-  }, [exercises, search, activeArea]);
+  }, [exercises, search, activeArea, language]);
 
   function handleFormChange(event) {
     const { name, value } = event.target;
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -72,10 +289,14 @@ export default function ExerciseCrudPage() {
 
   function resetForm() {
     setForm({
-      name: "",
+      name_pt: "",
+      name_en: "",
       area: "",
       description: "",
+      description_pt: "",
+      description_en: "",
     });
+
     setFormMode("create");
     setEditingId(null);
   }
@@ -83,46 +304,68 @@ export default function ExerciseCrudPage() {
   function handleEdit(exercise) {
     setFormMode("edit");
     setEditingId(exercise.id);
+
     setForm({
-      name: exercise.name || "",
+      name_pt: exercise.name_pt || exercise.name || "",
+      name_en: exercise.name_en || "",
       area: exercise.area || "",
       description: exercise.description || "",
+      description_pt: exercise.description_pt || "",
+      description_en: exercise.description_en || "",
     });
+
     setSuccess("");
     setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    formRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError("");
     setSuccess("");
+
+    const payload = {
+      name: form.name_pt || form.name_en,
+      name_pt: form.name_pt,
+      name_en: form.name_en,
+      area: form.area,
+      description: form.description_pt || form.description_en,
+      description_pt: form.description_pt,
+      description_en: form.description_en,
+    };
 
     try {
       setSaving(true);
 
       if (formMode === "create") {
-        const created = await createExercise(form);
-        setExercises((prev) => [...prev, created]);
-        setSuccess("Exercício criado com sucesso.");
+        const created = await createExercise(payload);
+        setExercises((prev) => [created, ...prev]);
+        setSuccess(text.createSuccess);
       } else {
-        const updated = await updateExercise(editingId, form);
+        const updated = await updateExercise(editingId, payload);
+
         setExercises((prev) =>
           prev.map((item) => (item.id === updated.id ? updated : item))
         );
-        setSuccess("Exercício atualizado com sucesso.");
+
+        setSuccess(text.updateSuccess);
       }
 
       resetForm();
     } catch (err) {
-      setError(err.message || "Erro ao guardar exercício.");
+      setError(err.message || text.saveError);
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(exerciseId) {
-    const ok = window.confirm("Queres mesmo remover este exercício?");
+    const ok = window.confirm(text.confirmDelete);
     if (!ok) return;
 
     setError("");
@@ -130,11 +373,14 @@ export default function ExerciseCrudPage() {
 
     try {
       await deleteExercise(exerciseId);
+
       setExercises((prev) => prev.filter((item) => item.id !== exerciseId));
+
       if (editingId === exerciseId) resetForm();
-      setSuccess("Exercício removido com sucesso.");
+
+      setSuccess(text.deleteSuccess);
     } catch (err) {
-      setError(err.message || "Erro ao remover exercício.");
+      setError(err.message || text.deleteError);
     }
   }
 
@@ -145,187 +391,191 @@ export default function ExerciseCrudPage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Terapeuta</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Gestão de Exercícios</h1>
-          <div className="pageSubtitle">
-            Criar, editar e organizar exercícios terapêuticos
+          <div className="userArea">
+            {text.hello}, {text.userFallback}
           </div>
         </div>
 
-        <div className="content">
+        <main className="exercisePrimePage">
+          <section className="exercisePrimeHeader">
+            <div>
+              <h1>{text.title}</h1>
+              <p>{text.subtitle}</p>
+            </div>
+
+            <div className="exercisePrimeHeaderCard">
+              <span>{text.totalExercises}</span>
+              <strong>{exercises.length}</strong>
+            </div>
+          </section>
+
           <TherapistSubnav />
 
-          {error && <div className="theraNoticeError">{error}</div>}
-          {success && <div className="theraNoticeOk">{success}</div>}
+          {error && <div className="theraPlanPrimeError">{error}</div>}
+          {success && <div className="theraPlanPrimeSuccess">{success}</div>}
 
-          <div className="exerciseCrudTopGrid">
-            <div className="exerciseCrudMetricCard">
-              <div className="exerciseCrudMetricLabel">Exercícios totais</div>
-              <div className="exerciseCrudMetricValue">{exercises.length}</div>
+          <section className="exercisePrimeStats">
+            <div className="exercisePrimeStat">
+              <div className="exercisePrimeIcon">↗</div>
+              <span>{text.totalExercises}</span>
+              <strong>{exercises.length}</strong>
             </div>
 
-            <div className="exerciseCrudMetricCard">
-              <div className="exerciseCrudMetricLabel">Resultados filtrados</div>
-              <div className="exerciseCrudMetricValue exerciseCrudMetricAccent">
-                {filteredExercises.length}
-              </div>
+            <div className="exercisePrimeStat">
+              <div className="exercisePrimeIcon">⌕</div>
+              <span>{text.filteredResults}</span>
+              <strong>{filteredExercises.length}</strong>
             </div>
 
-            <div className="exerciseCrudMetricCard">
-              <div className="exerciseCrudMetricLabel">Áreas cobertas</div>
-              <div className="exerciseCrudMetricValue">
-                {Math.max(areaOptions.length - 1, 0)}
-              </div>
+            <div className="exercisePrimeStat">
+              <div className="exercisePrimeIcon">◎</div>
+              <span>{text.coveredAreas}</span>
+              <strong>{Math.max(areaOptions.length - 1, 0)}</strong>
             </div>
-          </div>
+          </section>
 
-          <div className="theraTopGrid">
-            <form className="theraCard" onSubmit={handleSubmit}>
-              <div className="theraCardHeader">
-                <h3 className="theraCardTitle">
-                  {formMode === "create" ? "Novo exercício" : "Editar exercício"}
-                </h3>
+          <section className="exercisePrimeTopGrid exercisePrimeTopGridSingle">
+            <form
+              ref={formRef}
+              className="exercisePrimeCard"
+              onSubmit={handleSubmit}
+            >
+              <div className="exercisePrimeCardHeader">
+                <div>
+                  <h2>
+                    {formMode === "create" ? text.newExercise : text.editExercise}
+                  </h2>
+                  <p>{text.formHelp}</p>
+                </div>
               </div>
 
-              <div className="theraFormGrid">
-                <div className="theraField">
-                  <label className="theraLabel">Nome</label>
+              <div className="exercisePrimeFormGrid">
+                <div className="exercisePrimeField">
+                  <label>{text.namePt}</label>
                   <input
-                    className="input"
-                    name="name"
-                    value={form.name}
+                    name="name_pt"
+                    value={form.name_pt}
                     onChange={handleFormChange}
-                    placeholder="Ex: Elevação de braço"
+                    placeholder={text.namePtPlaceholder}
                     required
                   />
                 </div>
 
-                <div className="theraField">
-                  <label className="theraLabel">Área</label>
+                <div className="exercisePrimeField">
+                  <label>{text.nameEn}</label>
                   <input
-                    className="input"
+                    name="name_en"
+                    value={form.name_en}
+                    onChange={handleFormChange}
+                    placeholder={text.nameEnPlaceholder}
+                    required
+                  />
+                </div>
+
+                <div className="exercisePrimeField exercisePrimeWide">
+                  <label>{text.area}</label>
+                  <input
                     name="area"
                     value={form.area}
                     onChange={handleFormChange}
-                    placeholder="Ex: OMBRO"
+                    placeholder={text.areaPlaceholder}
                     required
                   />
                 </div>
 
-                <div className="theraField">
-                  <label className="theraLabel">Descrição</label>
+                <div className="exercisePrimeField">
+                  <label>{text.descriptionPt}</label>
                   <textarea
-                    className="input"
-                    name="description"
-                    value={form.description}
+                    name="description_pt"
+                    value={form.description_pt}
                     onChange={handleFormChange}
-                    placeholder="Descrição do exercício"
-                    required
+                    placeholder={text.descriptionPtPlaceholder}
+                  />
+                </div>
+
+                <div className="exercisePrimeField">
+                  <label>{text.descriptionEn}</label>
+                  <textarea
+                    name="description_en"
+                    value={form.description_en}
+                    onChange={handleFormChange}
+                    placeholder={text.descriptionEnPlaceholder}
                   />
                 </div>
               </div>
 
-              <div className="exerciseCrudFormActions">
-                <button
-                  type="submit"
-                  className="mediumButton theraMainBtn"
-                  disabled={saving}
-                >
+              <div className="exercisePrimeActions">
+                <button type="submit" disabled={saving}>
                   {saving
-                    ? "A guardar..."
+                    ? text.saving
                     : formMode === "create"
-                    ? "Criar exercício"
-                    : "Guardar alterações"}
+                    ? text.create
+                    : text.saveChanges}
                 </button>
 
                 {formMode === "edit" && (
-                  <button
-                    type="button"
-                    className="exerciseCrudGhostBtn"
-                    onClick={resetForm}
-                  >
-                    Cancelar
+                  <button type="button" className="isGhost" onClick={resetForm}>
+                    {text.cancel}
                   </button>
                 )}
               </div>
             </form>
+          </section>
 
-            <div className="theraCard">
-              <div className="theraCardHeader">
-                <h3 className="theraCardTitle">Filtros</h3>
-              </div>
-
-              <div className="theraFormGrid">
-                <div className="theraField">
-                  <label className="theraLabel">Pesquisar</label>
-                  <input
-                    className="input"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Pesquisar exercício..."
-                  />
-                </div>
-
-                <div className="theraField">
-                  <label className="theraLabel">Área</label>
-                  <select
-                    className="input"
-                    value={activeArea}
-                    onChange={(e) => setActiveArea(e.target.value)}
-                  >
-                    {areaOptions.map((area) => (
-                      <option key={area} value={area}>
-                        {area}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="exerciseCrudToolbar">
+          <section className="exercisePrimeListHeader">
             <div>
-              <h2 className="exerciseCrudSectionTitle">Lista de exercícios</h2>
-              <p className="exerciseCrudSectionSub">
-                Gere o catálogo disponível para criação de planos
-              </p>
+              <h2>{text.listTitle}</h2>
+              <p>{text.listSubtitle}</p>
             </div>
-          </div>
 
-          <div className="exerciseCrudFilters">
+            <div className="exercisePrimeListControls">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={text.searchPlaceholder}
+              />
+
+              <select
+                value={activeArea}
+                onChange={(e) => setActiveArea(e.target.value)}
+              >
+                {areaOptions.map((area) => (
+                  <option key={area.value} value={area.value}>
+                    {area.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </section>
+
+          <div className="exercisePrimeFilters">
             {areaOptions.map((area) => (
               <button
-                key={area}
-                className={`exerciseCrudFilterBtn ${
-                  activeArea === area ? "exerciseCrudFilterBtnActive" : ""
-                }`}
-                onClick={() => setActiveArea(area)}
+                key={area.value}
+                type="button"
+                className={activeArea === area.value ? "isActive" : ""}
+                onClick={() => setActiveArea(area.value)}
               >
-                {area}
+                {area.label}
               </button>
             ))}
           </div>
 
-          <div className="exerciseCrudTableCard">
+          <section className="exercisePrimeListCard">
             {loading ? (
-              <div className="theraEmptyBox">A carregar exercícios...</div>
+              <div className="exercisePrimeEmpty">{text.loading}</div>
             ) : filteredExercises.length === 0 ? (
-              <div className="theraEmptyBox">
-                Não foram encontrados exercícios com estes filtros.
-              </div>
+              <div className="exercisePrimeEmpty">{text.noResults}</div>
             ) : (
-              <div className="exerciseCrudTableWrap">
-                <table className="exerciseCrudTable">
+              <div className="exercisePrimeTableWrap">
+                <table className="exercisePrimeTable">
                   <thead>
                     <tr>
-                      <th>Exercício</th>
-                      <th>Área</th>
-                      <th>Descrição</th>
-                      <th>Ações</th>
+                      <th>{text.exercise}</th>
+                      <th>{text.area}</th>
+                      <th>{text.description}</th>
+                      <th>{text.actions}</th>
                     </tr>
                   </thead>
 
@@ -333,28 +583,33 @@ export default function ExerciseCrudPage() {
                     {filteredExercises.map((exercise) => (
                       <tr key={exercise.id}>
                         <td>
-                          <div className="exerciseCrudNameCell">
-                            <div className="exerciseCrudExerciseIcon">🏃</div>
-                            <span>{exercise.name}</span>
+                          <div className="exercisePrimeNameCell">
+                            <div className="exercisePrimeMiniIcon">↗</div>
+                            <span>{getExerciseName(exercise, language)}</span>
                           </div>
                         </td>
-                        <td>{exercise.area}</td>
-                        <td className="exerciseCrudDescriptionCell">
-                          {exercise.description}
+
+                        <td>{getAreaLabel(exercise, language)}</td>
+
+                        <td className="exercisePrimeDescription">
+                          {getExerciseDescription(exercise, language)}
                         </td>
+
                         <td>
-                          <div className="exerciseCrudActionRow">
+                          <div className="exercisePrimeActionRow">
                             <button
-                              className="exerciseCrudGhostBtn"
+                              type="button"
                               onClick={() => handleEdit(exercise)}
                             >
-                              Editar
+                              {text.edit}
                             </button>
+
                             <button
-                              className="exerciseCrudDangerBtn"
+                              type="button"
+                              className="isDanger"
                               onClick={() => handleDelete(exercise.id)}
                             >
-                              Remover
+                              {text.remove}
                             </button>
                           </div>
                         </td>
@@ -364,51 +619,58 @@ export default function ExerciseCrudPage() {
                 </table>
               </div>
             )}
-          </div>
+          </section>
 
-          <div className="exerciseCrudBottomGrid">
-            <div className="exerciseCrudSummaryCard">
-              <h3 className="exerciseCrudSummaryTitle">Resumo rápido</h3>
+          <section className="exercisePrimeBottom">
+            <div className="exercisePrimeCard">
+              <div className="exercisePrimeCardHeader">
+                <h2>{text.quickSummary}</h2>
+              </div>
 
-              <div className="exerciseCrudSummaryList">
-                <div className="exerciseCrudSummaryItem">
-                  <span>Exercícios no sistema</span>
+              <div className="exercisePrimeSummaryList">
+                <div>
+                  <span>{text.systemExercises}</span>
                   <strong>{exercises.length}</strong>
                 </div>
-                <div className="exerciseCrudSummaryItem">
-                  <span>Áreas diferentes</span>
+
+                <div>
+                  <span>{text.differentAreas}</span>
                   <strong>{Math.max(areaOptions.length - 1, 0)}</strong>
                 </div>
-                <div className="exerciseCrudSummaryItem">
-                  <span>Resultados visíveis</span>
+
+                <div>
+                  <span>{text.visibleResults}</span>
                   <strong>{filteredExercises.length}</strong>
                 </div>
               </div>
             </div>
 
-            <div className="exerciseCrudSummaryCard">
-              <h3 className="exerciseCrudSummaryTitle">Ações rápidas</h3>
+            <div className="exercisePrimeActionCard">
+              <span>{text.quickActions}</span>
+              <h3>{text.create}</h3>
+              <p>{text.formHelp}</p>
 
-              <div className="exerciseCrudQuickActions">
+              <div>
                 <button
-                  className="exerciseCrudQuickBtn"
+                  type="button"
                   onClick={() => {
                     resetForm();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    formRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
                   }}
                 >
-                  Criar exercício
+                  {text.create}
                 </button>
-                <button
-                  className="exerciseCrudQuickBtn"
-                  onClick={loadExercises}
-                >
-                  Atualizar lista
+
+                <button type="button" onClick={loadExercises}>
+                  {text.refreshList}
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
     </div>
   );

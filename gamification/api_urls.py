@@ -6,6 +6,7 @@ from .api_views import (
     RewardListView,
     RedeemRewardView,
     MyRedemptionsView,
+    TherapistCreateChallengeView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path("rewards/", RewardListView.as_view(), name="api_rewards"),
     path("rewards/<int:reward_id>/redeem/", RedeemRewardView.as_view(), name="api_rewards_redeem"),
     path("me/redemptions/", MyRedemptionsView.as_view(), name="api_my_redemptions"),
+    path("therapist/challenges/", TherapistCreateChallengeView.as_view(), name="api_therapist_create_challenge"),
 ]

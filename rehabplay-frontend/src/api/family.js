@@ -35,3 +35,11 @@ export async function sendFamilyThreadMessage(threadId, body) {
     body,
   });
 }
+
+export async function respondFamilyLink(linkId, action) {
+  return apiFetch(`/api/family/links/${linkId}/respond/`, {
+    method: "POST",
+    body: { action },
+  });
+}
+

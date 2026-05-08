@@ -122,3 +122,10 @@ export async function deleteMediaResource(id) {
     method: "DELETE",
   });
 }
+
+export async function createTherapistChallenge(body) {
+  return apiFetch("/api/therapist/challenges/create/", {
+    method: "POST",
+    body,
+  });
+}

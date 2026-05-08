@@ -42,10 +42,24 @@ export async function apiFetch(path, { method = "GET", body, headers } = {}) {
   if (contentType.includes("application/json")) data = await res.json();
   else data = await res.text();
 
-  if (!res.ok) {
-    const msg = typeof data === "string" ? data : (data?.detail || `HTTP ${res.status}`);
-    throw new Error(msg);
+if (!res.ok) {
+  let msg = `HTTP ${res.status}`;
+
+  if (typeof data === "string") {
+    msg = data || msg;
+  } else if (data?.detail) {
+    msg = data.detail;
+  } else if (data && typeof data === "object") {
+    msg = Object.entries(data)
+      .map(([key, value]) => {
+        const text = Array.isArray(value) ? value.join(", ") : String(value);
+        return `${key}: ${text}`;
+      })
+      .join(" | ");
   }
+
+  throw new Error(msg);
+}
 
   return data;
 }

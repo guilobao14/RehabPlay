@@ -8,6 +8,13 @@ export async function fetchMyProgress() {
   return apiFetch("/api/progress/");
 }
 
+export async function createProgressEntry(body) {
+  return apiFetch("/api/progress/", {
+    method: "POST",
+    body,
+  });
+}
+
 export async function fetchLibraryResources() {
   return apiFetch("/api/library/");
 }
@@ -67,4 +74,10 @@ export async function fetchSessions() {
 
 export async function fetchSessionDetail(sessionId) {
   return apiFetch(`/api/sessions/${sessionId}/`);
+}
+
+export async function fetchProgressOptions() {
+  return apiFetch("/api/progress/", {
+    method: "OPTIONS",
+  });
 }

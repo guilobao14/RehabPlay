@@ -8,13 +8,203 @@ import {
   fetchRewards,
   redeemReward,
 } from "../../api/patient";
+import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
 
-function formatDate(value) {
-  if (!value) return "-";
+const gamificationText = {
+  "pt-PT": {
+    hello: "Olá",
+    userFallback: "Guilherme",
+
+    title: "Gamificação",
+    subtitle:
+      "Acompanha pontos, níveis, badges, desafios e recompensas enquanto manténs a regularidade na reabilitação.",
+
+    loadingTitle: "A carregar...",
+    loadingText: "A obter os teus dados de gamificação.",
+    errorTitle: "Erro",
+    loadError: "Erro ao carregar gamificação.",
+
+    totalPoints: "Pontuação total",
+    totalPointsText: "Pontos acumulados através da atividade na plataforma.",
+    level: "Nível",
+    levelText: "Representa a tua evolução dentro da RehabPlay.",
+    currentStreak: "Sequência atual",
+    currentStreakText: "Dias consecutivos com atividade registada.",
+    days: "dias",
+    pointsShort: "pts",
+
+    mainSummary: "Resumo principal",
+    today: "Hoje",
+    bestStreak: "Melhor sequência",
+    lastActivity: "Última atividade",
+    unlockedBadges: "Badges conquistadas",
+
+    ranking: "Ranking",
+    leaderboard: "Leaderboard",
+    noData: "Sem dados",
+    user: "Utilizador",
+
+    badgesTitle: "Badges desbloqueadas",
+    badgesSubtitle: "Conquistas obtidas ao longo do teu percurso.",
+    noBadgesTitle: "Sem badges ainda",
+    noBadgesText:
+      "Continua a usar a plataforma para começares a desbloquear conquistas.",
+
+    challengesTitle: "Desafios",
+    challengesSubtitle: "Acompanha o teu progresso nos desafios ativos.",
+    noChallengesTitle: "Sem desafios ativos",
+    noChallengesText: "Neste momento não existem desafios disponíveis.",
+    progress: "Progresso",
+    completedAt: "Concluído em",
+    activeUntil: "Ativo até",
+
+    rewardsTitle: "Recompensas",
+    rewardsSubtitle: "Usa os teus pontos para resgatar recompensas disponíveis.",
+    noRewardsTitle: "Sem recompensas",
+    noRewardsText: "Não existem recompensas disponíveis neste momento.",
+    redeeming: "A resgatar...",
+    redeem: "Resgatar",
+    insufficientPoints: "Pontos insuficientes",
+    redeemSuccess: "Recompensa resgatada com sucesso.",
+    redeemError: "Erro ao resgatar recompensa.",
+
+    latestRedemptions: "Últimos resgates",
+    noRedemptions: "Sem resgates ainda",
+
+    quickAction: "Ação rápida",
+    keepGoing: "Continua a evoluir",
+    keepGoingText:
+      "Completa exercícios e mantém regularidade para subires de nível e desbloqueares mais recompensas.",
+    seePlan: "Ver plano",
+
+    highlighted: "Em destaque",
+    availableRewards: "recompensas",
+    noDate: "-",
+  },
+
+  en: {
+    hello: "Hi",
+    userFallback: "Guilherme",
+
+    title: "Gamification",
+    subtitle:
+      "Track points, levels, badges, challenges and rewards while keeping consistency in your rehabilitation.",
+
+    loadingTitle: "Loading...",
+    loadingText: "Fetching your gamification data.",
+    errorTitle: "Error",
+    loadError: "Error loading gamification.",
+
+    totalPoints: "Total points",
+    totalPointsText: "Points earned through activity on the platform.",
+    level: "Level",
+    levelText: "Represents your progression inside RehabPlay.",
+    currentStreak: "Current streak",
+    currentStreakText: "Consecutive days with registered activity.",
+    days: "days",
+    pointsShort: "pts",
+
+    mainSummary: "Main summary",
+    today: "Today",
+    bestStreak: "Best streak",
+    lastActivity: "Last activity",
+    unlockedBadges: "Unlocked badges",
+
+    ranking: "Ranking",
+    leaderboard: "Leaderboard",
+    noData: "No data",
+    user: "User",
+
+    badgesTitle: "Unlocked badges",
+    badgesSubtitle: "Achievements earned throughout your journey.",
+    noBadgesTitle: "No badges yet",
+    noBadgesText:
+      "Keep using the platform to start unlocking achievements.",
+
+    challengesTitle: "Challenges",
+    challengesSubtitle: "Track your progress in active challenges.",
+    noChallengesTitle: "No active challenges",
+    noChallengesText: "There are no challenges available right now.",
+    progress: "Progress",
+    completedAt: "Completed on",
+    activeUntil: "Active until",
+
+    rewardsTitle: "Rewards",
+    rewardsSubtitle: "Use your points to redeem available rewards.",
+    noRewardsTitle: "No rewards",
+    noRewardsText: "There are no rewards available right now.",
+    redeeming: "Redeeming...",
+    redeem: "Redeem",
+    insufficientPoints: "Not enough points",
+    redeemSuccess: "Reward redeemed successfully.",
+    redeemError: "Error redeeming reward.",
+
+    latestRedemptions: "Latest redemptions",
+    noRedemptions: "No redemptions yet",
+
+    quickAction: "Quick action",
+    keepGoing: "Keep progressing",
+    keepGoingText:
+      "Complete exercises and stay consistent to level up and unlock more rewards.",
+    seePlan: "View plan",
+
+    highlighted: "Highlighted",
+    availableRewards: "rewards",
+    noDate: "-",
+  },
+};
+
+function translateBackendText(value, language, fallback = "") {
+  if (!value) return fallback;
+
+  let text = String(value);
+
+  const ptToEn = {
+    "Texto:": "Text:",
+    "Vídeo:": "Video:",
+    "Registaste o teu primeiro progresso!": "You logged your first progress!",
+    "Atingiste 50 pontos.": "You reached 50 points.",
+    "Primeiro Registo": "First Record",
+    "50 Pontos": "50 Points",
+    "3 treinos esta semana": "3 workouts this week",
+    "Regista 3 progressos esta semana e ganha 20 pontos!":
+      "Log 3 progress records this week and earn 20 points!",
+    "Desbloquear Tema Premium": "Unlock Premium Theme",
+    "Acesso a temas premium": "Access to premium themes",
+
+    "Primeiro exercício": "First exercise",
+    "Primeira semana": "First week",
+    "Consistência": "Consistency",
+    "Sequência": "Streak",
+    "Plano completo": "Completed plan",
+    "Completa exercícios": "Complete exercises",
+    "Conquista": "Achievement",
+    "Recompensa": "Reward",
+    "Desafio": "Challenge",
+    "Desconto": "Discount",
+    "Consulta": "Appointment",
+    "Sem descrição": "No description",
+  };
+
+  const enToPt = Object.fromEntries(
+    Object.entries(ptToEn).map(([pt, en]) => [en, pt])
+  );
+
+  const dictionary = language === "en" ? ptToEn : enToPt;
+
+  Object.entries(dictionary).forEach(([from, to]) => {
+    text = text.replaceAll(from, to);
+  });
+
+  return text;
+}
+
+function formatDate(value, language, text) {
+  if (!value) return text.noDate;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
 
-  return date.toLocaleDateString("pt-PT", {
+  return date.toLocaleDateString(language === "en" ? "en-GB" : "pt-PT", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -32,6 +222,9 @@ function challengeProgressPercent(challenge) {
 }
 
 export default function GamificationPage() {
+  const { language } = useAppPreferences();
+  const text = gamificationText[language] || gamificationText["pt-PT"];
+
   const [summary, setSummary] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [challenges, setChallenges] = useState([]);
@@ -45,6 +238,9 @@ export default function GamificationPage() {
   useEffect(() => {
     async function loadGamification() {
       try {
+        setLoading(true);
+        setError("");
+
         const [summaryData, leaderboardData, challengesData, rewardsData] =
           await Promise.all([
             fetchMyGamification(),
@@ -58,14 +254,14 @@ export default function GamificationPage() {
         setChallenges(Array.isArray(challengesData) ? challengesData : []);
         setRewards(Array.isArray(rewardsData) ? rewardsData : []);
       } catch (err) {
-        setError(err.message || "Erro ao carregar gamificação.");
+        setError(err.message || text.loadError);
       } finally {
         setLoading(false);
       }
     }
 
     loadGamification();
-  }, []);
+  }, [text.loadError]);
 
   const stats = summary?.stats || {};
   const badges = summary?.badges || [];
@@ -77,6 +273,10 @@ export default function GamificationPage() {
     return [];
   }, [challenges, summary]);
 
+  const completedChallenges = useMemo(() => {
+    return visibleChallenges.filter((challenge) => challenge.completed_at).length;
+  }, [visibleChallenges]);
+
   async function handleRedeemReward(rewardId) {
     try {
       setRedeemingId(rewardId);
@@ -85,7 +285,7 @@ export default function GamificationPage() {
 
       const result = await redeemReward(rewardId);
 
-      setSuccess("Recompensa resgatada com sucesso.");
+      setSuccess(text.redeemSuccess);
 
       setSummary((prev) => {
         if (!prev) return prev;
@@ -109,7 +309,7 @@ export default function GamificationPage() {
         };
       });
     } catch (err) {
-      setError(err.message || "Erro ao resgatar recompensa.");
+      setError(err.message || text.redeemError);
     } finally {
       setRedeemingId(null);
     }
@@ -122,156 +322,188 @@ export default function GamificationPage() {
           <Link to="/dashboard" className="brandLink">
             RehabPlay
           </Link>
-          <div className="userArea">Olá, Guilherme</div>
-        </div>
 
-        <div className="pageHeader">
-          <h1 className="pageTitle">Gamificação</h1>
-          <div className="pageSubtitle">
-            Acompanha pontos, badges, desafios e recompensas
+          <div className="userArea">
+            {text.hello}, {text.userFallback}
           </div>
         </div>
 
-        <div className="content">
+        <main className="gamiPrimePage">
+          <section className="gamiPrimeHeader">
+            <div>
+              <h1>{text.title}</h1>
+              <p>{text.subtitle}</p>
+            </div>
+
+            <div className="gamiPrimeHeaderCard">
+              <span>{text.highlighted}</span>
+              <strong>{stats.total_points ?? 0}</strong>
+              <p>{text.pointsShort}</p>
+            </div>
+          </section>
+
           <PatientSubnav />
 
           {loading && (
-            <div className="gamiCard">
-              <h3 className="gamiCardTitle">A carregar...</h3>
-              <p className="gamiActionText">A obter os teus dados de gamificação.</p>
+            <div className="gamiPrimeState">
+              <h3>{text.loadingTitle}</h3>
+              <p>{text.loadingText}</p>
             </div>
           )}
 
           {!loading && error && (
-            <div className="gamiCard">
-              <h3 className="gamiCardTitle">Erro</h3>
-              <p className="gamiActionText">{error}</p>
+            <div className="gamiPrimeState">
+              <h3>{text.errorTitle}</h3>
+              <p>{error}</p>
             </div>
           )}
 
           {!loading && !error && (
             <>
-              {success && <div className="gamiNoticeOk">{success}</div>}
+              {success && <div className="gamiPrimeSuccess">{success}</div>}
 
-              <div className="gamiTopGrid">
-                <div className="gamiMetricCard">
-                  <div className="gamiMetricLabel">Pontuação total</div>
-                  <div className="gamiMetricValue">
-                    {stats.total_points ?? 0}
-                  </div>
+              <section className="gamiPrimeStats">
+                <div className="gamiPrimeStat">
+                  <div className="gamiPrimeIcon">◆</div>
+                  <span>{text.totalPoints}</span>
+                  <strong>{stats.total_points ?? 0}</strong>
+                  <p>{text.totalPointsText}</p>
                 </div>
 
-                <div className="gamiMetricCard">
-                  <div className="gamiMetricLabel">Nível</div>
-                  <div className="gamiMetricValue gamiAccent">
-                    {stats.level ?? 0}
-                  </div>
+                <div className="gamiPrimeStat">
+                  <div className="gamiPrimeIcon">↗</div>
+                  <span>{text.level}</span>
+                  <strong>{stats.level ?? 0}</strong>
+                  <p>{text.levelText}</p>
                 </div>
 
-                <div className="gamiMetricCard">
-                  <div className="gamiMetricLabel">Sequência atual</div>
-                  <div className="gamiMetricValue">
-                    {stats.current_streak ?? 0} dias
-                  </div>
+                <div className="gamiPrimeStat">
+                  <div className="gamiPrimeIcon">◎</div>
+                  <span>{text.currentStreak}</span>
+                  <strong>
+                    {stats.current_streak ?? 0} {text.days}
+                  </strong>
+                  <p>{text.currentStreakText}</p>
                 </div>
-              </div>
+              </section>
 
-              <div className="gamiMainGrid">
-                <div className="gamiCard">
-                  <div className="gamiCardHeader">
-                    <h3 className="gamiCardTitle">Resumo principal</h3>
-                    <span className="gamiTag">Hoje</span>
-                  </div>
-
-                  <div className="gamiInfoList">
-                    <div className="gamiInfoItem">
-                      <span>Melhor sequência</span>
-                      <strong>{stats.best_streak ?? 0} dias</strong>
+              <section className="gamiPrimeMainGrid">
+                <div className="gamiPrimeCard">
+                  <div className="gamiPrimeCardHeader">
+                    <div>
+                      <h3>{text.mainSummary}</h3>
+                      <span>{text.today}</span>
                     </div>
-                    <div className="gamiInfoItem">
-                      <span>Última atividade</span>
-                      <strong>{formatDate(stats.last_activity_date)}</strong>
+                  </div>
+
+                  <div className="gamiPrimeInfoList">
+                    <div>
+                      <span>{text.bestStreak}</span>
+                      <strong>
+                        {stats.best_streak ?? 0} {text.days}
+                      </strong>
                     </div>
-                    <div className="gamiInfoItem">
-                      <span>Badges conquistadas</span>
+
+                    <div>
+                      <span>{text.lastActivity}</span>
+                      <strong>
+                        {formatDate(stats.last_activity_date, language, text)}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>{text.unlockedBadges}</span>
                       <strong>{badges.length}</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="gamiCard">
-                  <div className="gamiCardHeader">
-                    <h3 className="gamiCardTitle">Ranking</h3>
-                    <span className="gamiTag">Leaderboard</span>
+                <div className="gamiPrimeCard">
+                  <div className="gamiPrimeCardHeader">
+                    <div>
+                      <h3>{text.ranking}</h3>
+                      <span>{text.leaderboard}</span>
+                    </div>
                   </div>
 
-                  <div className="gamiRankingList">
+                  <div className="gamiPrimeRanking">
                     {leaderboard.length === 0 ? (
-                      <div className="gamiRankingItem">
-                        <span>Sem dados</span>
+                      <div className="gamiPrimeRankingItem">
+                        <span>{text.noData}</span>
                         <strong>-</strong>
                       </div>
                     ) : (
                       leaderboard.slice(0, 5).map((entry, index) => (
                         <div
                           key={`${entry.patient_id}-${index}`}
-                          className="gamiRankingItem"
+                          className="gamiPrimeRankingItem"
                         >
                           <span>
-                            #{index + 1} {entry.patient__username || "Utilizador"}
+                            #{index + 1}{" "}
+                            {entry.patient__username || text.user}
                           </span>
-                          <strong>{entry.total ?? 0} pts</strong>
+                          <strong>
+                            {entry.total ?? 0} {text.pointsShort}
+                          </strong>
                         </div>
                       ))
                     )}
                   </div>
                 </div>
-              </div>
+              </section>
 
-              <div className="gamiSectionHeader">
-                <h2 className="gamiSectionTitle">Badges desbloqueadas</h2>
-                <p className="gamiSectionSub">
-                  Recompensas conquistadas ao longo do teu percurso
-                </p>
-              </div>
+              <section className="gamiPrimeSectionTitle">
+                <div>
+                  <h2>{text.badgesTitle}</h2>
+                  <p>{text.badgesSubtitle}</p>
+                </div>
+              </section>
 
-              <div className="gamiBadgesGrid">
+              <section className="gamiPrimeBadges">
                 {badges.length === 0 ? (
-                  <div className="gamiBadgeCard">
-                    <div className="gamiBadgeTitle">Sem badges ainda</div>
-                    <div className="gamiBadgeText">
-                      Continua a usar a plataforma para começares a desbloquear
-                      conquistas.
-                    </div>
+                  <div className="gamiPrimeEmptyCard">
+                    <h3>{text.noBadgesTitle}</h3>
+                    <p>{text.noBadgesText}</p>
                   </div>
                 ) : (
                   badges.map((badge, index) => (
-                    <div key={`${badge.code}-${index}`} className="gamiBadgeCard">
-                      <div className="gamiBadgeIcon">🏅</div>
-                      <div className="gamiBadgeTitle">{badge.name}</div>
-                      <div className="gamiBadgeText">{badge.description}</div>
-                      <div className="gamiBadgeDate">
-                        {formatDate(badge.awarded_at)}
-                      </div>
-                    </div>
+                    <article
+                      key={`${badge.code}-${index}`}
+                      className="gamiPrimeBadge"
+                    >
+                      <div className="gamiPrimeBadgeIcon">★</div>
+                      <h3>{translateBackendText(badge.name, language)}</h3>
+                      <p>
+                        {translateBackendText(
+                          badge.description,
+                          language,
+                          ""
+                        )}
+                      </p>
+                      <span>
+                        {formatDate(badge.awarded_at, language, text)}
+                      </span>
+                    </article>
                   ))
                 )}
-              </div>
+              </section>
 
-              <div className="gamiSectionHeader">
-                <h2 className="gamiSectionTitle">Desafios</h2>
-                <p className="gamiSectionSub">
-                  Acompanha o teu progresso nos desafios ativos
-                </p>
-              </div>
+              <section className="gamiPrimeSectionTitle">
+                <div>
+                  <h2>{text.challengesTitle}</h2>
+                  <p>{text.challengesSubtitle}</p>
+                </div>
 
-              <div className="gamiChallengesGrid">
+                <div className="gamiPrimeMiniPill">
+                  {completedChallenges}/{visibleChallenges.length}
+                </div>
+              </section>
+
+              <section className="gamiPrimeChallenges">
                 {visibleChallenges.length === 0 ? (
-                  <div className="gamiCard">
-                    <h3 className="gamiCardTitle">Sem desafios ativos</h3>
-                    <p className="gamiActionText">
-                      Neste momento não existem desafios disponíveis.
-                    </p>
+                  <div className="gamiPrimeEmptyCard">
+                    <h3>{text.noChallengesTitle}</h3>
+                    <p>{text.noChallengesText}</p>
                   </div>
                 ) : (
                   visibleChallenges.map((challenge, index) => {
@@ -282,62 +514,78 @@ export default function GamificationPage() {
                       0;
 
                     return (
-                      <div
+                      <article
                         key={`${challenge.code}-${index}`}
-                        className="gamiCard"
+                        className="gamiPrimeChallenge"
                       >
-                        <div className="gamiCardHeader">
-                          <h3 className="gamiCardTitle">{challenge.title}</h3>
-                          <span className="gamiTag">
-                            +{challenge.reward_points ?? 0} pts
+                        <div className="gamiPrimeChallengeHeader">
+                          <div>
+                            <h3>
+                              {translateBackendText(
+                                challenge.title,
+                                language
+                              )}
+                            </h3>
+                            <p>
+                              {translateBackendText(
+                                challenge.description,
+                                language,
+                                ""
+                              )}
+                            </p>
+                          </div>
+
+                          <span>
+                            +{challenge.reward_points ?? 0} {text.pointsShort}
                           </span>
                         </div>
 
-                        <div className="gamiChallengeBox">
-                          <div className="gamiChallengeText">
-                            {challenge.description}
-                          </div>
-
-                          <div className="gamiChallengeMeta">
-                            Progresso: <strong>{current}</strong> /{" "}
-                            <strong>{challenge.goal_target ?? 0}</strong>
-                          </div>
-
-                          <div className="gamiProgressBar">
-                            <div
-                              className="gamiProgressFill"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
-
-                          <div className="gamiMutedLine">
-                            {challenge.completed_at
-                              ? `Concluído em ${formatDate(
-                                  challenge.completed_at
-                                )}`
-                              : `Ativo até ${formatDate(challenge.ends_at)}`}
-                          </div>
+                        <div className="gamiPrimeChallengeMeta">
+                          <span>{text.progress}</span>
+                          <strong>
+                            {current} / {challenge.goal_target ?? 0}
+                          </strong>
                         </div>
-                      </div>
+
+                        <div className="gamiPrimeProgressBar">
+                          <div style={{ width: `${progress}%` }} />
+                        </div>
+
+                        <div className="gamiPrimeMuted">
+                          {challenge.completed_at
+                            ? `${text.completedAt} ${formatDate(
+                                challenge.completed_at,
+                                language,
+                                text
+                              )}`
+                            : `${text.activeUntil} ${formatDate(
+                                challenge.ends_at,
+                                language,
+                                text
+                              )}`}
+                        </div>
+                      </article>
                     );
                   })
                 )}
-              </div>
+              </section>
 
-              <div className="gamiSectionHeader">
-                <h2 className="gamiSectionTitle">Recompensas</h2>
-                <p className="gamiSectionSub">
-                  Usa os teus pontos para resgatar recompensas disponíveis
-                </p>
-              </div>
+              <section className="gamiPrimeSectionTitle">
+                <div>
+                  <h2>{text.rewardsTitle}</h2>
+                  <p>{text.rewardsSubtitle}</p>
+                </div>
 
-              <div className="gamiRewardsGrid">
+                <div className="gamiPrimeMiniPill">
+                  {rewards.length} {text.availableRewards}
+                </div>
+              </section>
+
+              <section className="gamiPrimeRewards">
                 {rewards.length === 0 ? (
-                  <div className="gamiCard">
-                    <h3 className="gamiCardTitle">Sem recompensas</h3>
-                    <p className="gamiActionText">
-                      Não existem recompensas disponíveis neste momento.
-                    </p>
+                  <div className="gamiPrimeEmptyCard">
+                    <h3>{text.noRewardsTitle}</h3>
+                    <p>{text.noRewardsText}</p>
                   </div>
                 ) : (
                   rewards.map((reward) => {
@@ -346,87 +594,92 @@ export default function GamificationPage() {
                       Number(reward.cost_points || 0);
 
                     return (
-                      <div key={reward.id} className="gamiCard">
-                        <div className="gamiCardHeader">
-                          <h3 className="gamiCardTitle">{reward.title}</h3>
-                          <span className="gamiTag">
-                            {reward.cost_points} pts
+                      <article key={reward.id} className="gamiPrimeReward">
+                        <div className="gamiPrimeRewardTop">
+                          <div className="gamiPrimeRewardIcon">◇</div>
+                          <span>
+                            {reward.cost_points} {text.pointsShort}
                           </span>
                         </div>
 
-                        <div className="gamiRewardText">
-                          {reward.description}
-                        </div>
+                        <h3>
+                          {translateBackendText(reward.title, language)}
+                        </h3>
+
+                        <p>
+                          {translateBackendText(
+                            reward.description,
+                            language,
+                            ""
+                          )}
+                        </p>
 
                         <button
-                          className="mediumButton gamiRedeemBtn"
+                          type="button"
                           onClick={() => handleRedeemReward(reward.id)}
                           disabled={!canRedeem || redeemingId === reward.id}
                         >
                           {redeemingId === reward.id
-                            ? "A resgatar..."
+                            ? text.redeeming
                             : canRedeem
-                            ? "Resgatar"
-                            : "Pontos insuficientes"}
+                            ? text.redeem
+                            : text.insufficientPoints}
                         </button>
-                      </div>
+                      </article>
                     );
                   })
                 )}
-              </div>
+              </section>
 
-              <div className="gamiBottomGrid">
-                <div className="gamiCard">
-                  <div className="gamiCardHeader">
-                    <h3 className="gamiCardTitle">Últimos resgates</h3>
+              <section className="gamiPrimeBottom">
+                <div className="gamiPrimeCard">
+                  <div className="gamiPrimeCardHeader">
+                    <div>
+                      <h3>{text.latestRedemptions}</h3>
+                    </div>
                   </div>
 
-                  <div className="gamiRankingList">
+                  <div className="gamiPrimeRanking">
                     {redemptions.length === 0 ? (
-                      <div className="gamiRankingItem">
-                        <span>Sem resgates ainda</span>
+                      <div className="gamiPrimeRankingItem">
+                        <span>{text.noRedemptions}</span>
                         <strong>-</strong>
                       </div>
                     ) : (
                       redemptions.slice(0, 5).map((item, index) => (
                         <div
                           key={`${item.reward_code}-${index}`}
-                          className="gamiRankingItem"
+                          className="gamiPrimeRankingItem"
                         >
-                          <span>{item.reward_title}</span>
-                          <strong>{item.cost_points} pts</strong>
+                          <span>
+                            {translateBackendText(
+                              item.reward_title,
+                              language
+                            )}
+                          </span>
+                          <strong>
+                            {item.cost_points} {text.pointsShort}
+                          </strong>
                         </div>
                       ))
                     )}
                   </div>
                 </div>
 
-                <div className="gamiCard">
-                  <div className="gamiCardHeader">
-                    <h3 className="gamiCardTitle">Ação rápida</h3>
-                  </div>
+                <div className="gamiPrimeActionCard">
+                  <span>{text.quickAction}</span>
+                  <h3>{text.keepGoing}</h3>
+                  <p>{text.keepGoingText}</p>
 
-                  <div className="gamiActionBox">
-                    <div>
-                      <div className="gamiActionTitle">Continua a evoluir</div>
-                      <div className="gamiActionText">
-                        Completa exercícios e mantém regularidade para subires de
-                        nível e desbloqueares mais recompensas.
-                      </div>
-                    </div>
-
-                    <Link
-                      to="/patient/plan"
-                      className="mediumButton gamiActionBtn"
-                    >
-                      Ver plano
-                    </Link>
-                  </div>
+                  <Link to="/patient/plan">
+                    {text.seePlan}
+                    <span>→</span>
+                  </Link>
                 </div>
-              </div>
+              </section>
             </>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

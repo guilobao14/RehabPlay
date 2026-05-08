@@ -1,35 +1,71 @@
-from django.db.models import Sum
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from django.db import transaction
 from datetime import timedelta
-from accounts.permissions import IsAuthenticatedOTP
+
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.text import slugify
+
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-from audit.services import log_action
+
+from accounts.permissions import IsAuthenticatedOTP
 from audit.models import AuditAction
+from audit.services import log_action
 
 from gamification.models import (
     PointLog,
     UserGamificationStats,
     UserBadge,
     Challenge,
+    ChallengeType,
     UserChallenge,
     Reward,
     RewardRedemption,
 )
 
+User = get_user_model()
+
+
+def is_patient_user(user):
+    role = getattr(user, "role", None)
+
+    if role:
+        return str(role).upper() == "PATIENT"
+
+    profile = getattr(user, "profile", None)
+    profile_role = getattr(profile, "role", None)
+
+    if profile_role:
+        return str(profile_role).upper() == "PATIENT"
+
+    return False
+
+
+def get_therapist_patients(therapist):
+    return User.objects.filter(
+        is_active=True,
+        id__in=[
+            user.id
+            for user in User.objects.filter(is_active=True)
+            if is_patient_user(user)
+        ],
+    )
+
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, str):
+        return value.lower() in ["true", "1", "yes", "sim"]
+
+    return bool(value)
 
 
 class MyGamificationSummaryView(APIView):
-    """
-    Dashboard do utilizador:
-    - stats (points/level/streak)
-    - badges
-    - challenges (com progresso e se completou)
-    - rewards redemptions (histórico)
-    """
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
@@ -100,10 +136,6 @@ class MyGamificationSummaryView(APIView):
 
 
 class LeaderboardView(APIView):
-    """
-    Leaderboard de pontos
-    GET /api/leaderboard/?period=all|7d|30d
-    """
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
@@ -111,6 +143,7 @@ class LeaderboardView(APIView):
         qs = PointLog.objects.all()
 
         now = timezone.now()
+
         if period == "7d":
             qs = qs.filter(created_at__gte=now - timedelta(days=7))
         elif period == "30d":
@@ -121,28 +154,32 @@ class LeaderboardView(APIView):
             .annotate(total=Sum("points"))
             .order_by("-total")[:10]
         )
+
         return Response(list(rows))
 
 
 class ChallengeListView(APIView):
-    """
-    Lista desafios ativos (e o estado do user nesse desafio).
-    """
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
         now = timezone.now()
-        active = Challenge.objects.filter(is_active=True, starts_at__lte=now, ends_at__gte=now).order_by("ends_at")
 
-        # map do user -> progress
-        user_map = {
-            uc.challenge_id: uc
-            for uc in UserChallenge.objects.filter(user=request.user, challenge__in=active).select_related("challenge")
-        }
+        user_challenges = (
+            UserChallenge.objects.filter(
+                user=request.user,
+                challenge__is_active=True,
+                challenge__starts_at__lte=now,
+                challenge__ends_at__gte=now,
+            )
+            .select_related("challenge")
+            .order_by("challenge__ends_at")
+        )
 
         data = []
-        for ch in active:
-            uc = user_map.get(ch.id)
+
+        for uc in user_challenges:
+            ch = uc.challenge
+
             data.append({
                 "code": ch.code,
                 "title": ch.title,
@@ -152,18 +189,121 @@ class ChallengeListView(APIView):
                 "reward_points": ch.reward_points,
                 "starts_at": ch.starts_at,
                 "ends_at": ch.ends_at,
-                "user_progress_value": uc.progress_value if uc else 0,
-                "user_completed_at": uc.completed_at if uc else None,
+                "user_progress_value": uc.progress_value,
+                "user_completed_at": uc.completed_at,
             })
 
         return Response(data)
+
+
+class TherapistCreateChallengeView(APIView):
+    permission_classes = [IsAuthenticatedOTP]
+
+    @transaction.atomic
+    def post(self, request):
+        title = request.data.get("title")
+        description = request.data.get("description", "")
+        challenge_type = request.data.get("challenge_type", ChallengeType.CUSTOM)
+        goal_type = request.data.get("goal_type")
+        goal_target = request.data.get("goal_target")
+        reward_points = request.data.get("reward_points", 0)
+        starts_at = request.data.get("starts_at")
+        ends_at = request.data.get("ends_at")
+
+        assign_to_all = parse_bool(request.data.get("assign_to_all", False))
+        selected_patients = request.data.get("selected_patients", [])
+
+        if not title:
+            return Response(
+                {"detail": "Title is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not goal_type:
+            return Response(
+                {"detail": "Goal type is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not goal_target:
+            return Response(
+                {"detail": "Goal target is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not starts_at or not ends_at:
+            return Response(
+                {"detail": "Start and end dates are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        base_code = slugify(title).upper().replace("-", "_")[:30] or "CHALLENGE"
+        code = base_code
+        counter = 1
+
+        while Challenge.objects.filter(code=code).exists():
+            counter += 1
+            code = f"{base_code}_{counter}"
+
+        challenge = Challenge.objects.create(
+            code=code,
+            title=title,
+            description=description,
+            challenge_type=challenge_type,
+            goal_type=goal_type,
+            goal_target=int(goal_target),
+            starts_at=starts_at,
+            ends_at=ends_at,
+            reward_points=int(reward_points or 0),
+            is_active=True,
+            created_by=request.user,
+        )
+
+        patients_qs = get_therapist_patients(request.user)
+
+        if not assign_to_all:
+            patients_qs = patients_qs.filter(id__in=selected_patients)
+
+        created_assignments = []
+
+        for patient in patients_qs:
+            user_challenge, created = UserChallenge.objects.get_or_create(
+                user=patient,
+                challenge=challenge,
+                defaults={"progress_value": 0},
+            )
+
+            if created:
+                created_assignments.append(user_challenge)
+
+        return Response(
+            {
+                "id": challenge.id,
+                "code": challenge.code,
+                "title": challenge.title,
+                "description": challenge.description,
+                "challenge_type": challenge.challenge_type,
+                "goal_type": challenge.goal_type,
+                "goal_target": challenge.goal_target,
+                "reward_points": challenge.reward_points,
+                "starts_at": challenge.starts_at,
+                "ends_at": challenge.ends_at,
+                "is_active": challenge.is_active,
+                "assigned_count": len(created_assignments),
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class RewardListView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
-        rewards = Reward.objects.filter(is_active=True).order_by("cost_points", "title")
+        rewards = Reward.objects.filter(is_active=True).order_by(
+            "cost_points",
+            "title",
+        )
+
         return Response([
             {
                 "id": r.id,
@@ -185,7 +325,10 @@ class RedeemRewardView(APIView):
         stats, _ = UserGamificationStats.objects.get_or_create(user=request.user)
 
         if stats.total_points < reward.cost_points:
-            return Response({"detail": "Not enough points."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Not enough points."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         stats.total_points -= reward.cost_points
         stats.save()
@@ -197,13 +340,13 @@ class RedeemRewardView(APIView):
         )
 
         log_action(
-    user=request.user,
-    action=AuditAction.REWARD_REDEEMED,
-    request=request,
-    object_type="Reward",
-    object_id=reward.id,
-    extra={"cost_points": reward.cost_points},
-)
+            user=request.user,
+            action=AuditAction.REWARD_REDEEMED,
+            request=request,
+            object_type="Reward",
+            object_id=reward.id,
+            extra={"cost_points": reward.cost_points},
+        )
 
         return Response(
             {
@@ -225,7 +368,12 @@ class MyRedemptionsView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
-        qs = RewardRedemption.objects.filter(user=request.user).select_related("reward").order_by("-redeemed_at")[:50]
+        qs = (
+            RewardRedemption.objects.filter(user=request.user)
+            .select_related("reward")
+            .order_by("-redeemed_at")[:50]
+        )
+
         return Response([
             {
                 "reward_code": rr.reward.code,

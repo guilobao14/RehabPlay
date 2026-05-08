@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
+import { useAppPreferences } from "./context/AppPreferencesContext";
 
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -19,6 +20,7 @@ import ExerciseCrudPage from "./pages/therapist/ExerciseCrudPage";
 import MediaCrudPage from "./pages/therapist/MediaCrudPage";
 import PlanManagementPage from "./pages/therapist/PlanManagementPage";
 import TherapistPatientProgressPage from "./pages/therapist/TherapistPatientProgressPage";
+import TherapistChallengesPage from "./pages/therapist/TherapistChallengesPage";
 
 import FamilyDashboardPage from "./pages/family/FamilyDashboardPage";
 import FamilyLinksPage from "./pages/family/FamilyLinksPage";
@@ -28,6 +30,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 
 function Nav() {
+  const { t } = useAppPreferences();
+
   const linkStyle = ({ isActive }) => ({
     marginRight: 12,
     textDecoration: "none",
@@ -47,40 +51,49 @@ function Nav() {
       }}
     >
       <NavLink style={linkStyle} to="/">
-        Home
+        {t("home")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/login">
-        Login
+        {t("login")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/dashboard">
-        Dashboard
+        {t("dashboard")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/messages">
-        Mensagens
+        {t("messages")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/notifications">
-        Notificações
+        {t("notifications")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/profile">
-        Perfil
+        {t("profile")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/settings">
-        Definições
+        {t("settings")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/test">
-        Test API
+        {t("testApi")}
       </NavLink>
 
       <span style={{ margin: "0 6px", opacity: 0.4, color: "#aab" }}>|</span>
 
       <NavLink style={linkStyle} to="/patient/plan">
-        Paciente
+        {t("patient")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/therapist/plans">
-        Terapeuta
+        {t("therapist")}
       </NavLink>
+
       <NavLink style={linkStyle} to="/family">
-        Familiar
+        {t("family")}
       </NavLink>
     </div>
   );
@@ -99,12 +112,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* páginas livres, sem shell */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* páginas protegidas para qualquer autenticado */}
         <Route element={<ProtectedRoute />}>
           <Route
             path="/dashboard"
@@ -114,6 +125,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/messages"
             element={
@@ -122,6 +134,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/notifications"
             element={
@@ -130,6 +143,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/profile"
             element={
@@ -138,6 +152,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/settings"
             element={
@@ -146,6 +161,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/test"
             element={
@@ -156,7 +172,6 @@ export default function App() {
           />
         </Route>
 
-        {/* PATIENT */}
         <Route element={<RoleRoute allow={["PATIENT"]} />}>
           <Route
             path="/patient/plan"
@@ -166,6 +181,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/patient/progress"
             element={
@@ -174,6 +190,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/patient/library"
             element={
@@ -182,6 +199,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/patient/gamification"
             element={
@@ -192,7 +210,6 @@ export default function App() {
           />
         </Route>
 
-        {/* THERAPIST */}
         <Route element={<RoleRoute allow={["THERAPIST"]} />}>
           <Route
             path="/therapist/exercises"
@@ -202,6 +219,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/therapist/media"
             element={
@@ -210,6 +228,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/therapist/plans"
             element={
@@ -218,6 +237,16 @@ export default function App() {
               </PageShell>
             }
           />
+
+          <Route
+            path="/therapist/challenges"
+            element={
+              <PageShell>
+                <TherapistChallengesPage />
+              </PageShell>
+            }
+          />
+
           <Route
             path="/therapist/patient-progress"
             element={
@@ -228,7 +257,6 @@ export default function App() {
           />
         </Route>
 
-        {/* FAMILY */}
         <Route element={<RoleRoute allow={["FAMILY"]} />}>
           <Route
             path="/family"
@@ -238,6 +266,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/family/links"
             element={
@@ -246,6 +275,7 @@ export default function App() {
               </PageShell>
             }
           />
+
           <Route
             path="/family/progress"
             element={
