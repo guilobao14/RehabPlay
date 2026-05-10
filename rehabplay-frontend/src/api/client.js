@@ -8,13 +8,18 @@ function getCookie(name) {
   return null;
 }
 
+function getCurrentLanguage() {
+  return localStorage.getItem("rehabplay_language") || "pt-PT";
+}
+
 export async function apiFetch(path, { method = "GET", body, headers } = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
 
   const opts = {
     method,
-    credentials: "include", //  usa session cookie do Django
+    credentials: "include",
     headers: {
+      "Accept-Language": getCurrentLanguage(),
       ...(headers || {}),
     },
   };
@@ -22,14 +27,16 @@ export async function apiFetch(path, { method = "GET", body, headers } = {}) {
   const hasBody = body !== undefined && body !== null;
 
   if (hasBody && body instanceof FormData) {
-    opts.body = body; // browser define multipart boundary
+    opts.body = body;
   } else if (hasBody) {
     opts.headers["Content-Type"] = "application/json";
     opts.body = JSON.stringify(body);
   }
 
-  // CSRF para métodos unsafe
-  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase());
+  const unsafe = ["POST", "PUT", "PATCH", "DELETE"].includes(
+    method.toUpperCase()
+  );
+
   if (unsafe) {
     const csrf = getCookie("csrftoken");
     if (csrf) opts.headers["X-CSRFToken"] = csrf;
@@ -38,28 +45,33 @@ export async function apiFetch(path, { method = "GET", body, headers } = {}) {
   const res = await fetch(url, opts);
 
   const contentType = res.headers.get("content-type") || "";
+
   let data = null;
-  if (contentType.includes("application/json")) data = await res.json();
-  else data = await res.text();
 
-if (!res.ok) {
-  let msg = `HTTP ${res.status}`;
-
-  if (typeof data === "string") {
-    msg = data || msg;
-  } else if (data?.detail) {
-    msg = data.detail;
-  } else if (data && typeof data === "object") {
-    msg = Object.entries(data)
-      .map(([key, value]) => {
-        const text = Array.isArray(value) ? value.join(", ") : String(value);
-        return `${key}: ${text}`;
-      })
-      .join(" | ");
+  if (contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    data = await res.text();
   }
 
-  throw new Error(msg);
-}
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+
+    if (typeof data === "string") {
+      msg = data || msg;
+    } else if (data?.detail) {
+      msg = Array.isArray(data.detail) ? data.detail.join(", ") : data.detail;
+    } else if (data && typeof data === "object") {
+      msg = Object.entries(data)
+        .map(([key, value]) => {
+          const text = Array.isArray(value) ? value.join(", ") : String(value);
+          return `${key}: ${text}`;
+        })
+        .join(" | ");
+    }
+
+    throw new Error(msg);
+  }
 
   return data;
 }

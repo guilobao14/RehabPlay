@@ -29,19 +29,27 @@ export default function LoginPage() {
     }));
   }
 
-  function goAfterLogin(role) {
-    if (role === "THERAPIST") {
-      navigate("/therapist/plans");
-      return;
-    }
+function goAfterLogin(role) {
+  sessionStorage.removeItem("rehabplay_forward_stack");
 
-    if (role === "FAMILY") {
-      navigate("/family");
-      return;
-    }
-
-    navigate("/dashboard");
+  if (role === "THERAPIST") {
+    sessionStorage.setItem(
+      "rehabplay_back_stack",
+      JSON.stringify(["/therapist/plans"])
+    );
+    navigate("/therapist/plans", { replace: true });
+    return;
   }
+
+  if (role === "FAMILY") {
+    sessionStorage.setItem("rehabplay_back_stack", JSON.stringify(["/family"]));
+    navigate("/family", { replace: true });
+    return;
+  }
+
+  sessionStorage.setItem("rehabplay_back_stack", JSON.stringify(["/dashboard"]));
+  navigate("/dashboard", { replace: true });
+}
 
   async function handleLoginSubmit(event) {
     event.preventDefault();

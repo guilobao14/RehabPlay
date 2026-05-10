@@ -19,6 +19,9 @@ from gamification.models import (
     PointLog,
     UserGamificationStats,
     UserBadge,
+    Badge,
+    BadgeRule,
+    BadgeRuleType,
     Challenge,
     ChallengeType,
     UserChallenge,
@@ -27,6 +30,111 @@ from gamification.models import (
 )
 
 User = get_user_model()
+
+
+DEFAULT_BADGES = [
+    {
+        "code": "FIRST_PROGRESS",
+        "name": "Primeiro Registo",
+        "description": "Regista o teu primeiro progresso.",
+        "rule_type": BadgeRuleType.PROGRESS_COUNT,
+        "threshold": 1,
+    },
+    {
+        "code": "FIVE_PROGRESS",
+        "name": "Primeiros 5 Registos",
+        "description": "Regista progresso 5 vezes.",
+        "rule_type": BadgeRuleType.PROGRESS_COUNT,
+        "threshold": 5,
+    },
+    {
+        "code": "TEN_PROGRESS",
+        "name": "Rotina Inicial",
+        "description": "Regista progresso 10 vezes.",
+        "rule_type": BadgeRuleType.PROGRESS_COUNT,
+        "threshold": 10,
+    },
+    {
+        "code": "TWENTY_PROGRESS",
+        "name": "Consistência Forte",
+        "description": "Regista progresso 20 vezes.",
+        "rule_type": BadgeRuleType.PROGRESS_COUNT,
+        "threshold": 20,
+    },
+    {
+        "code": "FIFTY_POINTS",
+        "name": "50 Pontos",
+        "description": "Atinge 50 pontos.",
+        "rule_type": BadgeRuleType.POINTS_TOTAL,
+        "threshold": 50,
+    },
+    {
+        "code": "HUNDRED_POINTS",
+        "name": "100 Pontos",
+        "description": "Atinge 100 pontos.",
+        "rule_type": BadgeRuleType.POINTS_TOTAL,
+        "threshold": 100,
+    },
+    {
+        "code": "TWO_HUNDRED_POINTS",
+        "name": "200 Pontos",
+        "description": "Atinge 200 pontos.",
+        "rule_type": BadgeRuleType.POINTS_TOTAL,
+        "threshold": 200,
+    },
+    {
+        "code": "THREE_DAY_STREAK",
+        "name": "Sequência de 3 Dias",
+        "description": "Mantém uma sequência de 3 dias.",
+        "rule_type": BadgeRuleType.STREAK,
+        "threshold": 3,
+    },
+    {
+        "code": "SEVEN_DAY_STREAK",
+        "name": "Semana Consistente",
+        "description": "Mantém uma sequência de 7 dias.",
+        "rule_type": BadgeRuleType.STREAK,
+        "threshold": 7,
+    },
+    {
+        "code": "FIRST_CHALLENGE",
+        "name": "Primeiro Desafio",
+        "description": "Completa o teu primeiro desafio.",
+        "rule_type": BadgeRuleType.CHALLENGES_COMPLETED,
+        "threshold": 1,
+    },
+    {
+        "code": "THREE_CHALLENGES",
+        "name": "Especialista em Desafios",
+        "description": "Completa 3 desafios.",
+        "rule_type": BadgeRuleType.CHALLENGES_COMPLETED,
+        "threshold": 3,
+    },
+]
+
+
+def ensure_default_badges():
+    for item in DEFAULT_BADGES:
+        badge, _ = Badge.objects.get_or_create(
+            code=item["code"],
+            defaults={
+                "name": item["name"],
+                "description": item["description"],
+            },
+        )
+
+        if badge.name != item["name"] or badge.description != item["description"]:
+            badge.name = item["name"]
+            badge.description = item["description"]
+            badge.save()
+
+        BadgeRule.objects.get_or_create(
+            badge=badge,
+            defaults={
+                "rule_type": item["rule_type"],
+                "threshold": item["threshold"],
+            },
+        )
 
 
 def is_patient_user(user):
@@ -65,17 +173,87 @@ def parse_bool(value):
     return bool(value)
 
 
+def get_badge_progress(user, rule_type):
+    stats, _ = UserGamificationStats.objects.get_or_create(user=user)
+
+    if rule_type == BadgeRuleType.PROGRESS_COUNT:
+        from rehab.models import ProgressEntry
+        return ProgressEntry.objects.filter(patient=user).count()
+
+    if rule_type == BadgeRuleType.POINTS_TOTAL:
+        return stats.total_points
+
+    if rule_type == BadgeRuleType.STREAK:
+        return stats.best_streak
+
+    if rule_type == BadgeRuleType.CHALLENGES_COMPLETED:
+        return UserChallenge.objects.filter(
+            user=user,
+            completed_at__isnull=False,
+        ).count()
+
+    return 0
+
+
+def award_available_badges(user):
+    ensure_default_badges()
+
+    earned_badge_ids = set(
+        UserBadge.objects.filter(user=user).values_list("badge_id", flat=True)
+    )
+
+    rules = BadgeRule.objects.select_related("badge").all()
+
+    for rule in rules:
+        if rule.badge_id in earned_badge_ids:
+            continue
+
+        current_value = get_badge_progress(user, rule.rule_type)
+
+        if current_value >= rule.threshold:
+            UserBadge.objects.get_or_create(user=user, badge=rule.badge)
+
+
 class MyGamificationSummaryView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
         stats, _ = UserGamificationStats.objects.get_or_create(user=request.user)
 
+        award_available_badges(request.user)
+
         badges = (
             UserBadge.objects.filter(user=request.user)
             .select_related("badge")
             .order_by("-awarded_at")
         )
+
+        earned_codes = set(ub.badge.code for ub in badges)
+
+        all_badges = []
+
+        for badge in Badge.objects.all().select_related("rule").order_by("id"):
+            rule = getattr(badge, "rule", None)
+
+            current_value = 0
+            threshold = 0
+            rule_type = ""
+
+            if rule:
+                current_value = get_badge_progress(request.user, rule.rule_type)
+                threshold = rule.threshold
+                rule_type = rule.rule_type
+
+            all_badges.append({
+                "code": badge.code,
+                "name": badge.name,
+                "description": badge.description,
+                "unlocked": badge.code in earned_codes,
+                "current_value": current_value,
+                "threshold": threshold,
+                "rule_type": rule_type,
+                "progress_percent": min(100, round((current_value / threshold) * 100)) if threshold else 0,
+            })
 
         challenges = (
             UserChallenge.objects.filter(user=request.user)
@@ -107,6 +285,7 @@ class MyGamificationSummaryView(APIView):
                 }
                 for ub in badges
             ],
+            "all_badges": all_badges,
             "challenges": [
                 {
                     "code": uc.challenge.code,
@@ -345,41 +524,25 @@ class RedeemRewardView(APIView):
             request=request,
             object_type="Reward",
             object_id=reward.id,
-            extra={"cost_points": reward.cost_points},
+            extra={
+                "reward_code": reward.code,
+                "cost_points": reward.cost_points,
+                "new_total_points": stats.total_points,
+            },
         )
 
         return Response(
             {
-                "detail": "Reward redeemed.",
+                "detail": "Reward redeemed successfully.",
+                "new_total_points": stats.total_points,
+                "redeemed_at": redemption.redeemed_at,
                 "reward": {
                     "id": reward.id,
                     "code": reward.code,
                     "title": reward.title,
+                    "description": reward.description,
                     "cost_points": reward.cost_points,
                 },
-                "new_total_points": stats.total_points,
-                "redeemed_at": redemption.redeemed_at,
             },
             status=status.HTTP_201_CREATED,
         )
-
-
-class MyRedemptionsView(APIView):
-    permission_classes = [IsAuthenticatedOTP]
-
-    def get(self, request):
-        qs = (
-            RewardRedemption.objects.filter(user=request.user)
-            .select_related("reward")
-            .order_by("-redeemed_at")[:50]
-        )
-
-        return Response([
-            {
-                "reward_code": rr.reward.code,
-                "reward_title": rr.reward.title,
-                "cost_points": rr.cost_points,
-                "redeemed_at": rr.redeemed_at,
-            }
-            for rr in qs
-        ])

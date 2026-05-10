@@ -9,6 +9,7 @@ import {
   setup2FA,
   verify2FA,
   fetchMe,
+  changePassword,
 } from "../api/auth";
 
 const text = {
@@ -67,6 +68,14 @@ const text = {
     noData: "Sem dados",
     noDataText: "Não foi possível encontrar as definições da conta.",
     hello: "Olá",
+    changePasswordTitle: "Alterar palavra-passe",
+    changePasswordText: "Atualiza a palavra-passe usada para iniciar sessão.",
+    currentPassword: "Palavra-passe atual",
+    newPassword: "Nova palavra-passe",
+    confirmPassword: "Confirmar nova palavra-passe",
+    savePassword: "Guardar palavra-passe",
+    passwordChanged: "Palavra-passe alterada com sucesso.",
+    passwordError: "Erro ao alterar palavra-passe.",
   },
   en: {
     title: "Settings",
@@ -123,6 +132,14 @@ const text = {
     noData: "No data",
     noDataText: "Could not find account settings.",
     hello: "Hi",
+    changePasswordTitle: "Change password",
+    changePasswordText: "Update the password used to sign in.",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    confirmPassword: "Confirm new password",
+    savePassword: "Save password",
+    passwordChanged: "Password changed successfully.",
+    passwordError: "Error changing password.",
   },
 };
 
@@ -153,6 +170,14 @@ export default function SettingsPage() {
   const [otpSetupData, setOtpSetupData] = useState(null);
   const [otpToken, setOtpToken] = useState("");
   const [otpEnabled, setOtpEnabled] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+  current_password: "",
+  new_password: "",
+  confirm_password: "",
+  });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -297,6 +322,45 @@ export default function SettingsPage() {
       setOtpLoading(false);
     }
   }
+
+
+  function handlePasswordChange(event) {
+  const { name, value } = event.target;
+  setPasswordError("");
+
+  setPasswordForm((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+
+  setSuccess("");
+}
+
+async function handlePasswordSubmit(event) {
+  event.preventDefault();
+  setPasswordError("");
+  setPasswordSaving(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    await changePassword(passwordForm);
+
+    setPasswordForm({
+      current_password: "",
+      new_password: "",
+      confirm_password: "",
+    });
+
+    setShowPasswordForm(false);
+    setSuccess(t.passwordChanged);
+  } catch (err) {
+  setPasswordError(err.message || t.passwordError);
+} finally {
+  setPasswordSaving(false);
+}
+}
+
 
   return (
     <div className="appPage">
@@ -508,10 +572,60 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="settingsProActionList">
-                    <button type="button">{t.password}</button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordForm((prev) => !prev)}
+                    >
+                      {t.password}
+                    </button>
                     <button type="button">{t.personalData}</button>
                   </div>
-                </div>
+                  {showPasswordForm && (
+                    <form className="settingsPasswordForm" onSubmit={handlePasswordSubmit}>
+                     <p>{t.changePasswordText}</p>
+                     {passwordError && (
+  <div className="settingsPasswordError">
+    {passwordError}
+  </div>
+)}
+
+                     <input
+                     type="password"
+                     name="current_password"
+                     placeholder={t.currentPassword}
+                     value={passwordForm.current_password}
+                     onChange={handlePasswordChange}
+                     required
+                    />
+
+                    <input
+                    type="password"
+                    name="new_password"
+                    placeholder={t.newPassword}
+                    value={passwordForm.new_password}
+                    onChange={handlePasswordChange}
+                    required
+                    />
+
+                    <input
+                    type="password"
+                    name="confirm_password"
+                    placeholder={t.confirmPassword}
+                    value={passwordForm.confirm_password}
+                    onChange={handlePasswordChange}
+                    required
+                   />
+
+                    <button
+                    type="submit"
+                    className="settingsProPrimaryBtn"
+                    disabled={passwordSaving}
+                   >
+                    {passwordSaving ? t.saving : t.savePassword}
+                  </button>
+                </form>
+              )}
+              </div>
 
                 <div className="settingsProCard">
                   <div className="settingsProCardHeader">

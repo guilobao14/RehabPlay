@@ -567,65 +567,62 @@ export default function ProfilePage() {
               </section>
 
               {profile.role === "PATIENT" && (
-                <section className="profileProCard profileFamilyRequestsCard">
-                  <div className="profileProCardHeader">
-                    <h2>{text.familyRequests}</h2>
-                    <span>{text.pending}</span>
-                  </div>
+  <section className="profileProCard profileFamilyRequestsCard">
+    <div className="profileProCardHeader">
+      <div>
+        <h2>{text.familyRequests}</h2>
+        <p className="profileFamilyRequestsSub">{text.familyRequestsSub}</p>
+      </div>
 
-                  <p className="profileProMiniNote">{text.familyRequestsSub}</p>
+      <span className="profileProSoftBadge">{text.pending}</span>
+    </div>
 
-                  {familyRequests.length === 0 ? (
-                    <div className="profileProMiniNote">
-                      {text.noFamilyRequests}
-                    </div>
-                  ) : (
-                    <div className="profileFamilyRequestList">
-                      {familyRequests.map((request) => (
-                        <div
-                          key={request.id}
-                          className="profileFamilyRequestItem"
-                        >
-                          <div>
-                            <span>{text.requestFrom}</span>
-                            <strong>{getFamilyRequestName(request)}</strong>
-                          </div>
+    {familyRequests.length === 0 ? (
+      <div className="profileFamilyEmpty">
+        <div className="profileFamilyEmptyIcon">✓</div>
+        <div>
+          <strong>{text.noFamilyRequests}</strong>
+          <p>{text.miniNote}</p>
+        </div>
+      </div>
+    ) : (
+      <div className="profileFamilyRequestList">
+        {familyRequests.map((request) => (
+          <div key={request.id} className="profileFamilyRequestItem">
+            <div className="profileFamilyRequestInfo">
+              <span>{text.requestFrom}</span>
+              <strong>{getFamilyRequestName(request)}</strong>
+            </div>
 
-                          <div className="profileFamilyRequestActions">
-                            <button
-                              type="button"
-                              className="profileProPrimaryBtn"
-                              disabled={respondingId === request.id}
-                              onClick={() =>
-                                handleRespondFamilyRequest(
-                                  request.id,
-                                  "APPROVE"
-                                )
-                              }
-                            >
-                              {text.approve}
-                            </button>
+            <div className="profileFamilyRequestActions">
+              <button
+                type="button"
+                className="profileProPrimaryBtn"
+                disabled={respondingId === request.id}
+                onClick={() =>
+                  handleRespondFamilyRequest(request.id, "APPROVE")
+                }
+              >
+                {text.approve}
+              </button>
 
-                            <button
-                              type="button"
-                              className="profileProGhostBtn"
-                              disabled={respondingId === request.id}
-                              onClick={() =>
-                                handleRespondFamilyRequest(
-                                  request.id,
-                                  "REJECT"
-                                )
-                              }
-                            >
-                              {text.reject}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              )}
+              <button
+                type="button"
+                className="profileProGhostBtn"
+                disabled={respondingId === request.id}
+                onClick={() =>
+                  handleRespondFamilyRequest(request.id, "REJECT")
+                }
+              >
+                {text.reject}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+)}
 
               <section className="profileProBottomGrid">
                 <div className="profileProCard profileProAboutCard">
@@ -646,22 +643,28 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="profileProActionList">
-                    <Link to="/settings" className="profileProActionLink">
-                      {text.goSettings}
-                    </Link>
+  <Link to="/settings" className="profileProActionLink">
+    <span className="profileProActionIcon">⚙</span>
+    <span>{text.goSettings}</span>
+    <strong>›</strong>
+  </Link>
 
-                    <Link to="/dashboard" className="profileProActionLink">
-                      {text.backDashboard}
-                    </Link>
+  <Link to="/dashboard" className="profileProActionLink">
+    <span className="profileProActionIcon">▦</span>
+    <span>{text.backDashboard}</span>
+    <strong>›</strong>
+  </Link>
 
-                    <button
-                      type="button"
-                      className="profileProActionButton"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      {text.updateInfo}
-                    </button>
-                  </div>
+  <button
+    type="button"
+    className="profileProActionButton"
+    onClick={() => setIsEditing(true)}
+  >
+    <span className="profileProActionIcon">✎</span>
+    <span>{text.updateInfo}</span>
+    <strong>›</strong>
+  </button>
+</div>
                 </div>
               </section>
             </>

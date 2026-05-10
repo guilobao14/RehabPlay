@@ -59,3 +59,10 @@ export async function verify2FA(token) {
     body: { token },
   });
 }
+
+export async function changePassword(body) {
+  return apiFetch("/api/auth/change-password/", {
+    method: "POST",
+    body,
+  });
+}

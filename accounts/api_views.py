@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import get_user_model
 from django_otp.plugins.otp_totp.models import TOTPDevice
+from django.contrib.auth.password_validation import validate_password
 
 from .models import Profile, AccountSettings
 from .serializers import (
@@ -219,3 +220,91 @@ class TherapistPatientListView(APIView):
         )
 
         return Response(TherapistPatientOptionSerializer(qs, many=True).data)
+    
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticatedOTP]
+
+    def _msg(self, request, pt, en):
+        lang = request.headers.get("Accept-Language", "pt-PT").lower()
+        return en if lang.startswith("en") else pt
+
+    def post(self, request):
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+        confirm_password = request.data.get("confirm_password")
+
+        if not current_password or not new_password or not confirm_password:
+            return Response(
+                {
+                    "detail": self._msg(
+                        request,
+                        "Todos os campos são obrigatórios.",
+                        "All fields are required.",
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not request.user.check_password(current_password):
+            return Response(
+                {
+                    "detail": self._msg(
+                        request,
+                        "A palavra-passe atual está incorreta.",
+                        "The current password is incorrect.",
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if new_password != confirm_password:
+            return Response(
+                {
+                    "detail": self._msg(
+                        request,
+                        "As novas palavras-passe não coincidem.",
+                        "The new passwords do not match.",
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if request.user.check_password(new_password):
+            return Response(
+                {
+                    "detail": self._msg(
+                        request,
+                        "A nova palavra-passe não pode ser igual à palavra-passe atual.",
+                        "The new password cannot be the same as the current password.",
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_password(new_password, request.user)
+        except Exception:
+            return Response(
+                {
+                    "detail": self._msg(
+                        request,
+                        "A nova palavra-passe não cumpre os requisitos de segurança.",
+                        "The new password does not meet the security requirements.",
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        request.user.set_password(new_password)
+        request.user.save()
+
+        return Response(
+            {
+                "detail": self._msg(
+                    request,
+                    "Palavra-passe alterada com sucesso.",
+                    "Password changed successfully.",
+                )
+            }
+        )

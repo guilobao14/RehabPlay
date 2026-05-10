@@ -15132,3 +15132,938 @@ html[data-theme="dark"] .settingsPro2FAActive p {
     align-items: flex-start;
   }
 }
+
+.topbarLeftGroup {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.globalPageTopbar {
+  height: 92px;
+  padding: 0 34px;
+  background: linear-gradient(135deg, #8b3f4a, #934550);
+  display: flex;
+  align-items: center;
+}
+
+.topbarBrandNav {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.globalTopbarBrand {
+  color: white;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+}
+
+.topbarDivider {
+  width: 1px;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pageTopArrows,
+.pageNavArrows {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.pageTopArrows button,
+.pageNavArrows button {
+  width: 54px;
+  height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #8b2f46;
+  font-size: 25px;
+  font-weight: 950;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 26px rgba(16, 24, 40, 0.16);
+}
+
+.pageTopArrows button:hover,
+.pageNavArrows button:hover {
+  transform: translateY(-2px);
+  background: white;
+}
+
+.appShellMockup > .topbar {
+  display: none !important;
+}
+
+.globalAppTopbar {
+  height: 112px;
+  padding: 0 50px;
+  background: linear-gradient(135deg, #8b3f4a, #934550);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.globalTopbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.globalTopbarBrand {
+  color: white;
+  font-size: 30px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.globalTopbarDivider {
+  width: 1px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pageNavArrows {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.pageNavArrows button {
+  width: 50px;
+  height: 50px;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #8b2f46;
+  font-size: 24px;
+  font-weight: 950;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 0 12px 26px rgba(16, 24, 40, 0.16);
+}
+
+.globalTopbarUser {
+  min-height: 50px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.globalTopbarChevron {
+  font-size: 13px;
+  opacity: 0.9;
+  transform: translateY(1px);
+}
+
+.globalTopbarUserWrap {
+  position: relative;
+}
+
+.globalTopbarUser {
+  min-height: 50px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.globalTopbarChevron {
+  font-size: 13px;
+  opacity: 0.9;
+  transform: translateY(1px);
+}
+
+.globalTopbarDropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 2000;
+}
+
+.globalAppTopbar {
+  height: 84px;
+  padding: 0 38px;
+  background: linear-gradient(135deg, #8b3f4a, #934550);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.globalTopbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.globalTopbarBrand {
+  color: white;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.globalTopbarDivider {
+  width: 1px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.pageNavArrows {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 21px;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+}
+
+.pageNavArrows button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #8b2f46;
+  font-size: 21px;
+  font-weight: 950;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.14);
+}
+
+.pageNavArrows button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: white;
+}
+
+.pageNavArrows button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.globalTopbarUser {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.globalTopbarChevron {
+  font-size: 12px;
+  opacity: 0.9;
+  transform: translateY(1px);
+}
+
+.globalTopbarUserZone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.globalTopbarAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.96);
+  color: #8b2f46;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 950;
+  flex: 0 0 auto;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.14);
+}
+
+.globalTopbarAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-theme="dark"] .globalTopbarAvatar {
+  background: rgba(15, 23, 42, 0.95);
+  color: #f9fafb;
+}
+
+.globalTopbarAvatar {
+  border: 0;
+  cursor: pointer;
+}
+
+.globalTopbarAvatar:hover {
+  transform: translateY(-1px);
+}
+
+.globalTopbarUser {
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.globalTopbarUser:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+}
+
+.settingsPasswordForm {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.settingsPasswordForm p {
+  margin: 0;
+  color: #667085;
+  font-weight: 700;
+}
+
+.settingsPasswordForm input {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(139, 47, 70, 0.16);
+  background: rgba(255, 255, 255, 0.94);
+  color: #101828;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 800;
+  outline: none;
+}
+
+.settingsPasswordForm input:focus {
+  border-color: rgba(139, 47, 70, 0.45);
+  box-shadow: 0 0 0 4px rgba(139, 47, 70, 0.08);
+}
+
+[data-theme="dark"] .settingsPasswordForm p {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .settingsPasswordForm input {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+.settingsPasswordError {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(220, 38, 38, 0.09);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  color: #b42318;
+  font-weight: 850;
+  font-size: 14px;
+}
+
+.profileProPage {
+  padding-top: 34px;
+}
+
+.profileProCard {
+  letter-spacing: -0.01em;
+}
+
+.profileProCardHeader {
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.profileProCardHeader h2 {
+  margin: 0;
+  color: #101828;
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.profileProCardHeader span,
+.profileProSoftBadge {
+  white-space: nowrap;
+}
+
+.profileProSoftBadge {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: rgba(139, 47, 70, 0.08);
+  color: #8b2f46;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.profileFamilyRequestsCard {
+  margin-top: 28px;
+  padding: 34px;
+}
+
+.profileFamilyRequestsSub {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 750;
+}
+
+.profileFamilyEmpty {
+  margin-top: 26px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(139, 47, 70, 0.045);
+  border: 1px solid rgba(139, 47, 70, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.profileFamilyEmptyIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(139, 47, 70, 0.1);
+  color: #8b2f46;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 950;
+  flex: 0 0 auto;
+}
+
+.profileFamilyEmpty strong {
+  color: #101828;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.profileFamilyEmpty p {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.profileFamilyRequestList {
+  margin-top: 26px;
+  display: grid;
+  gap: 16px;
+}
+
+.profileFamilyRequestItem {
+  min-height: 92px;
+  border-radius: 24px;
+  background: rgba(139, 47, 70, 0.045);
+  border: 1px solid rgba(139, 47, 70, 0.1);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+}
+
+.profileFamilyRequestInfo span {
+  display: block;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.profileFamilyRequestInfo strong {
+  display: block;
+  margin-top: 6px;
+  color: #101828;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+}
+
+.profileFamilyRequestActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.profileProAboutCard > p {
+  color: #667085;
+  font-size: 17px;
+  line-height: 1.65;
+  font-weight: 650;
+}
+
+.profileProMiniNote {
+  margin-top: 20px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: rgba(139, 47, 70, 0.045);
+  border: 1px solid rgba(139, 47, 70, 0.1);
+  color: #6b4b55;
+  font-size: 16px;
+  line-height: 1.65;
+  font-weight: 800;
+}
+
+.profileProActionList {
+  gap: 14px;
+}
+
+.profileProActionLink,
+.profileProActionButton {
+  min-height: 56px;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+[data-theme="dark"] .profileProCardHeader h2,
+[data-theme="dark"] .profileFamilyEmpty strong,
+[data-theme="dark"] .profileFamilyRequestInfo strong {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .profileFamilyRequestsSub,
+[data-theme="dark"] .profileFamilyEmpty p,
+[data-theme="dark"] .profileProAboutCard > p,
+[data-theme="dark"] .profileFamilyRequestInfo span {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .profileFamilyEmpty,
+[data-theme="dark"] .profileFamilyRequestItem,
+[data-theme="dark"] .profileProMiniNote {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 760px) {
+  .profileFamilyRequestsCard {
+    padding: 24px;
+  }
+
+  .profileFamilyEmpty,
+  .profileFamilyRequestItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profileFamilyRequestActions {
+    width: 100%;
+  }
+}
+
+.profileProBottomGrid {
+  margin-top: 64px;
+  align-items: stretch;
+}
+
+.profileProAboutCard,
+.profileProBottomGrid .profileProCard {
+  padding: 38px;
+}
+
+.profileProAboutCard > p {
+  margin-top: 28px;
+}
+
+.profileProAboutCard .profileProMiniNote {
+  margin-top: 34px;
+  display: flex;
+  align-items: center;
+  min-height: 118px;
+}
+
+.profileProActionList {
+  margin-top: 30px;
+  display: grid;
+  gap: 20px;
+}
+
+.profileProActionLink,
+.profileProActionButton {
+  min-height: 78px;
+  padding: 0 24px;
+  border-radius: 22px;
+  border: 1px solid rgba(139, 47, 70, 0.18);
+  background: rgba(255, 255, 255, 0.82);
+  color: #8b2f46;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  text-decoration: none;
+  font-size: 17px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.profileProActionLink:hover,
+.profileProActionButton:hover {
+  transform: translateY(-2px);
+  background: rgba(139, 47, 70, 0.045);
+  box-shadow: 0 16px 34px rgba(16, 24, 40, 0.09);
+}
+
+.profileProActionIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(139, 47, 70, 0.08);
+  color: #8b2f46;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.profileProActionLink strong,
+.profileProActionButton strong {
+  font-size: 30px;
+  line-height: 1;
+  color: #8b2f46;
+}
+
+.profileFamilyRequestsCard {
+  margin-bottom: 64px;
+}
+
+[data-theme="dark"] .profileProActionLink,
+[data-theme="dark"] .profileProActionButton {
+  background: rgba(15, 23, 42, 0.86);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .profileProActionIcon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .profileProActionLink strong,
+[data-theme="dark"] .profileProActionButton strong {
+  color: #f9fafb;
+}
+
+.gamiPrimeAllBadges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.gamiPrimeBadgeProgress {
+  border-radius: 28px;
+  padding: 26px;
+  border: 1px solid rgba(139, 47, 70, 0.12);
+  box-shadow: 0 22px 60px rgba(16, 24, 40, 0.08);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 47, 70, 0.06), transparent 32%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.gamiPrimeBadgeProgress.isLocked {
+  opacity: 0.68;
+  filter: grayscale(0.25);
+}
+
+.gamiPrimeBadgeProgressTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.gamiPrimeBadgeProgressTop span {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(139, 47, 70, 0.08);
+  color: #8b2f46;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.gamiPrimeBadgeProgress.isLocked .gamiPrimeBadgeProgressTop span {
+  background: rgba(102, 112, 133, 0.1);
+  color: #667085;
+}
+
+.gamiPrimeBadgeProgress h3 {
+  margin: 22px 0 0;
+  color: #101828;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.gamiPrimeBadgeProgress p {
+  margin: 12px 0 0;
+  color: #667085;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.gamiPrimeBadgeProgressMeta {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.gamiPrimeBadgeProgressMeta strong {
+  color: #101828;
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress {
+  background: rgba(17, 24, 39, 0.82);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress h3,
+[data-theme="dark"] .gamiPrimeBadgeProgressMeta strong {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress p,
+[data-theme="dark"] .gamiPrimeBadgeProgressMeta {
+  color: #cbd5e1;
+}
+
+@media (max-width: 1100px) {
+  .gamiPrimeAllBadges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .gamiPrimeAllBadges {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gamiPrimeBadgeFilters {
+  margin: -8px 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gamiPrimeBadgeFilters button {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 47, 70, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  color: #667085;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.gamiPrimeBadgeFilters button:hover {
+  transform: translateY(-1px);
+  background: rgba(139, 47, 70, 0.06);
+}
+
+.gamiPrimeBadgeFilters button.isActive {
+  background: rgba(139, 47, 70, 0.14);
+  color: #8b2f46;
+  border-color: rgba(139, 47, 70, 0.28);
+}
+
+.gamiPrimeAllBadges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.gamiPrimeBadgeProgress {
+  border-radius: 28px;
+  padding: 26px;
+  border: 1px solid rgba(139, 47, 70, 0.12);
+  box-shadow: 0 22px 60px rgba(16, 24, 40, 0.08);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 47, 70, 0.06), transparent 32%),
+    rgba(255, 255, 255, 0.92);
+}
+
+.gamiPrimeBadgeProgress.isLocked {
+  opacity: 0.68;
+  filter: grayscale(0.25);
+}
+
+.gamiPrimeBadgeProgressTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.gamiPrimeBadgeProgressTop span {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(139, 47, 70, 0.08);
+  color: #8b2f46;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.gamiPrimeBadgeProgress.isLocked .gamiPrimeBadgeProgressTop span {
+  background: rgba(102, 112, 133, 0.1);
+  color: #667085;
+}
+
+.gamiPrimeBadgeProgress h3 {
+  margin: 22px 0 0;
+  color: #101828;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.gamiPrimeBadgeProgress p {
+  margin: 12px 0 0;
+  color: #667085;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.gamiPrimeBadgeProgressMeta {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.gamiPrimeBadgeProgressMeta strong {
+  color: #101828;
+}
+
+[data-theme="dark"] .gamiPrimeBadgeFilters button {
+  background: rgba(15, 23, 42, 0.86);
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .gamiPrimeBadgeFilters button.isActive {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress {
+  background: rgba(17, 24, 39, 0.82);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress h3,
+[data-theme="dark"] .gamiPrimeBadgeProgressMeta strong {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .gamiPrimeBadgeProgress p,
+[data-theme="dark"] .gamiPrimeBadgeProgressMeta {
+  color: #cbd5e1;
+}
+
+@media (max-width: 1100px) {
+  .gamiPrimeAllBadges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .gamiPrimeAllBadges {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gamiPrimeBadgeToolbar {
+  margin: -8px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.gamiPrimeBadgeToggle {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 47, 70, 0.18);
+  background: rgba(139, 47, 70, 0.1);
+  color: #8b2f46;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.18s ease;
+}
+
+.gamiPrimeBadgeToggle:hover {
+  transform: translateY(-1px);
+  background: rgba(139, 47, 70, 0.14);
+}
