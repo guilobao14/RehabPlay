@@ -381,15 +381,17 @@ export default function MediaCrudPage() {
     setError("");
     setSuccess("");
 
-    const payload = {
-      exercise: Number(form.exercise),
-      type: form.type,
-      title: form.title,
-      description: form.description,
-      video_url: form.video_url || null,
-      difficulty: form.difficulty,
-      duration_minutes: Number(form.duration_minutes),
-    };
+    const isVideo = form.type === "VIDEO";
+
+const payload = {
+  exercise: Number(form.exercise),
+  type: form.type,
+  title: form.title,
+  description: form.description,
+  video_url: isVideo ? form.video_url || "" : "",
+  difficulty: form.difficulty,
+  duration_minutes: isVideo ? Number(form.duration_minutes || 0) : null,
+};
 
     try {
       setSaving(true);
@@ -590,17 +592,19 @@ export default function MediaCrudPage() {
                   />
                 </div>
 
-                <div className="mediaStudioField">
-                  <label>{text.durationMin}</label>
-                  <input
-                    type="number"
-                    min="1"
-                    name="duration_minutes"
-                    value={form.duration_minutes}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
+                {form.type === "VIDEO" && (
+  <div className="mediaStudioField">
+    <label>{text.durationMin}</label>
+    <input
+      type="number"
+      min="1"
+      name="duration_minutes"
+      value={form.duration_minutes}
+      onChange={handleFormChange}
+      required
+    />
+  </div>
+)}
 
                 {form.type === "VIDEO" && (
                   <div className="mediaStudioField">
@@ -742,9 +746,11 @@ export default function MediaCrudPage() {
                               resourceArea || "-"
                             )}
                           </span>
-                          <span>
-                            {resource.duration_minutes || 0} {text.minutes}
-                          </span>
+                        {isVideo && (
+  <span>
+    {resource.duration_minutes || 0} {text.minutes}
+  </span>
+)}
                         </div>
                       </div>
 

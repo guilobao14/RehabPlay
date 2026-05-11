@@ -124,7 +124,7 @@ export async function deleteMediaResource(id) {
 }
 
 export async function createTherapistChallenge(body) {
-  return apiFetch("/api/therapist/challenges/create/", {
+  return apiFetch("/api/therapist/challenges/", {
     method: "POST",
     body,
   });

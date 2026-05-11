@@ -52,7 +52,6 @@ const text = {
     confirming: "A confirmar...",
     privacy: "Privacidade",
     password: "Alterar palavra-passe",
-    personalData: "Gerir dados pessoais",
     session: "Sessão",
     logout: "Terminar sessão",
     loggingOut: "A terminar...",
@@ -116,7 +115,6 @@ const text = {
     confirming: "Confirming...",
     privacy: "Privacy",
     password: "Change password",
-    personalData: "Manage personal data",
     session: "Session",
     logout: "Sign out",
     loggingOut: "Signing out...",
@@ -572,14 +570,13 @@ async function handlePasswordSubmit(event) {
                   </div>
 
                   <div className="settingsProActionList">
-                    <button
-                      type="button"
-                      onClick={() => setShowPasswordForm((prev) => !prev)}
-                    >
-                      {t.password}
-                    </button>
-                    <button type="button">{t.personalData}</button>
-                  </div>
+  <button
+    type="button"
+    onClick={() => setShowPasswordForm((prev) => !prev)}
+  >
+    {t.password}
+  </button>
+</div>
                   {showPasswordForm && (
                     <form className="settingsPasswordForm" onSubmit={handlePasswordSubmit}>
                      <p>{t.changePasswordText}</p>

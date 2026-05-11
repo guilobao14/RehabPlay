@@ -647,8 +647,7 @@ export default function PlanManagementPage() {
                             </div>
 
                             <div className="theraPlanPrimePlanActions">
-                              <span>{text.seeDetails}</span>
-
+                              
                               <span
                                 role="button"
                                 tabIndex={0}

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import TherapistSubnav from "../../components/TherapistSubnav";
 import {
   fetchTherapistPatients,
   createTherapistChallenge,
 } from "../../api/therapist";
 import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
+import { fetchMyProfile } from "../../api/auth";
 
 const textPage = {
   "pt-PT": {
@@ -15,7 +15,8 @@ const textPage = {
     subtitle:
       "Cria desafios personalizados e atribui-os a todos os pacientes ou apenas a pacientes específicos.",
     create: "Criar desafio",
-    challengeInfo: "Define o objetivo, duração, recompensa e quem deve receber o desafio.",
+    challengeInfo:
+      "Define o objetivo, duração, recompensa e quem deve receber o desafio.",
     titleLabel: "Título",
     description: "Descrição",
     goalType: "Tipo de objetivo",
@@ -39,6 +40,7 @@ const textPage = {
     assignedTo: "Será atribuído a",
     selected: "selecionado(s)",
   },
+
   en: {
     hello: "Hi",
     userFallback: "Therapist",
@@ -46,7 +48,8 @@ const textPage = {
     subtitle:
       "Create personalized challenges and assign them to all patients or only selected patients.",
     create: "Create challenge",
-    challengeInfo: "Define the goal, duration, reward and who should receive the challenge.",
+    challengeInfo:
+      "Define the goal, duration, reward and who should receive the challenge.",
     titleLabel: "Title",
     description: "Description",
     goalType: "Goal type",
@@ -84,6 +87,8 @@ export default function TherapistChallengesPage() {
   const text = textPage[language] || textPage["pt-PT"];
 
   const [patients, setPatients] = useState([]);
+  const [profile, setProfile] = useState(null);
+
   const [assignToAll, setAssignToAll] = useState(true);
   const [selectedPatients, setSelectedPatients] = useState([]);
 
@@ -103,10 +108,18 @@ export default function TherapistChallengesPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    async function loadPatients() {
+    async function loadData() {
       try {
-        const data = await fetchTherapistPatients();
-        setPatients(Array.isArray(data) ? data : []);
+        setLoading(true);
+        setError("");
+
+        const [patientsData, profileData] = await Promise.all([
+          fetchTherapistPatients(),
+          fetchMyProfile().catch(() => null),
+        ]);
+
+        setPatients(Array.isArray(patientsData) ? patientsData : []);
+        setProfile(profileData || null);
       } catch (err) {
         setError(err.message || text.error);
       } finally {
@@ -114,7 +127,7 @@ export default function TherapistChallengesPage() {
       }
     }
 
-    loadPatients();
+    loadData();
   }, [text.error]);
 
   function handleChange(event) {
@@ -155,8 +168,8 @@ export default function TherapistChallengesPage() {
 
     try {
       await createTherapistChallenge({
-        title: form.title,
-        description: form.description,
+        title: form.title.trim(),
+        description: form.description.trim(),
         challenge_type: "CUSTOM",
         goal_type: form.goal_type,
         goal_target: Number(form.goal_target),
@@ -187,21 +200,13 @@ export default function TherapistChallengesPage() {
     }
   }
 
-  const assignedCount = assignToAll ? patients.length : selectedPatients.length;
+  const assignedCount = assignToAll
+    ? patients.length
+    : selectedPatients.length;
 
   return (
     <div className="appPage">
       <div className="appShellMockup">
-        <div className="topbar">
-          <Link to="/dashboard" className="brandLink">
-            RehabPlay
-          </Link>
-
-          <div className="userArea">
-            {text.hello}, {text.userFallback}
-          </div>
-        </div>
-
         <main className="theraChallengePage">
           <section className="theraChallengeHeader">
             <div>
@@ -234,7 +239,11 @@ export default function TherapistChallengesPage() {
                     name="title"
                     value={form.title}
                     onChange={handleChange}
-                    placeholder={language === "en" ? "Example: Weekly consistency" : "Ex: Consistência semanal"}
+                    placeholder={
+                      language === "en"
+                        ? "Example: Weekly consistency"
+                        : "Ex: Consistência semanal"
+                    }
                     required
                   />
                 </div>
@@ -247,8 +256,12 @@ export default function TherapistChallengesPage() {
                     onChange={handleChange}
                     required
                   >
-                    <option value="PROGRESS_COUNT">{text.progressCount}</option>
-                    <option value="MINUTES_TOTAL">{text.minutesTotal}</option>
+                    <option value="PROGRESS_COUNT">
+                      {text.progressCount}
+                    </option>
+                    <option value="MINUTES_TOTAL">
+                      {text.minutesTotal}
+                    </option>
                     <option value="STREAK">{text.streak}</option>
                   </select>
                 </div>
@@ -317,7 +330,10 @@ export default function TherapistChallengesPage() {
               <button
                 type="submit"
                 className="theraChallengePrimary"
-                disabled={saving || (!assignToAll && selectedPatients.length === 0)}
+                disabled={
+                  saving ||
+                  (!assignToAll && selectedPatients.length === 0)
+                }
               >
                 {saving ? text.saving : text.submit}
               </button>
@@ -357,11 +373,12 @@ export default function TherapistChallengesPage() {
                   {loading ? (
                     <div className="theraPlanPrimeEmpty">...</div>
                   ) : patients.length === 0 ? (
-                    <div className="theraPlanPrimeEmpty">{text.noPatients}</div>
+                    <div className="theraPlanPrimeEmpty">
+                      {text.noPatients}
+                    </div>
                   ) : (
                     patients.map((patient) => {
                       const patientId = getPatientId(patient);
-                      const name = getPatientName(patient);
 
                       return (
                         <label
@@ -371,9 +388,11 @@ export default function TherapistChallengesPage() {
                           <input
                             type="checkbox"
                             checked={selectedPatients.includes(patientId)}
-                            onChange={() => handlePatientToggle(patientId)}
+                            onChange={() =>
+                              handlePatientToggle(patientId)
+                            }
                           />
-                          <span>{name}</span>
+                          <span>{getPatientName(patient)}</span>
                         </label>
                       );
                     })

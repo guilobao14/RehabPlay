@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchMyProfile, updateMyProfile } from "../api/auth";
 import { fetchFamilyLinks, respondFamilyLink } from "../api/family";
@@ -216,6 +216,7 @@ function getFamilyRequestName(request) {
 }
 
 export default function ProfilePage() {
+  const pageTopRef = useRef(null);
   const { language } = useAppPreferences();
   const text = profileText[language] || profileText["pt-PT"];
 
@@ -235,6 +236,29 @@ export default function ProfilePage() {
     phone: "",
     photo: null,
   });
+
+  function goToPageTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function handleUpdateInfo() {
+  setIsEditing(true);
+  setSaveMessage("");
+
+  setTimeout(() => {
+    const editCard = document.querySelector(".profileProEditCard");
+
+    if (editCard) {
+      editCard.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, 80);
+}
 
   useEffect(() => {
     async function loadProfile() {
@@ -359,7 +383,7 @@ export default function ProfilePage() {
     <div className="appPage">
       <div className="appShellMockup">
         <div className="topbar">
-          <Link to="/dashboard" className="brandLink">
+          <Link to="/dashboard" className="brandLink" onClick={goToPageTop}>
             RehabPlay
           </Link>
 
@@ -368,7 +392,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="content profileProPage">
+        <div className="content profileProPage" ref={pageTopRef}>
           {loading && (
             <div className="profileProStateCard">
               <h3>{text.loadingTitle}</h3>
@@ -404,12 +428,17 @@ export default function ProfilePage() {
                       onClick={() => {
                         setIsEditing((prev) => !prev);
                         setSaveMessage("");
+                        goToPageTop();
                       }}
                     >
                       {isEditing ? text.closeEdit : text.editProfile}
                     </button>
 
-                    <Link to="/settings" className="profileProGhostBtn">
+                    <Link
+                      to="/settings"
+                      className="profileProGhostBtn"
+                      onClick={goToPageTop}
+                    >
                       {text.settings}
                     </Link>
                   </div>
@@ -495,7 +524,10 @@ export default function ProfilePage() {
                     <button
                       type="button"
                       className="profileProGhostBtn"
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => {
+                        setIsEditing(false);
+                        goToPageTop();
+                      }}
                     >
                       {text.cancel}
                     </button>
@@ -567,62 +599,73 @@ export default function ProfilePage() {
               </section>
 
               {profile.role === "PATIENT" && (
-  <section className="profileProCard profileFamilyRequestsCard">
-    <div className="profileProCardHeader">
-      <div>
-        <h2>{text.familyRequests}</h2>
-        <p className="profileFamilyRequestsSub">{text.familyRequestsSub}</p>
-      </div>
+                <section className="profileProCard profileFamilyRequestsCard">
+                  <div className="profileProCardHeader">
+                    <div>
+                      <h2>{text.familyRequests}</h2>
+                      <p className="profileFamilyRequestsSub">
+                        {text.familyRequestsSub}
+                      </p>
+                    </div>
 
-      <span className="profileProSoftBadge">{text.pending}</span>
-    </div>
+                    <span className="profileProSoftBadge">{text.pending}</span>
+                  </div>
 
-    {familyRequests.length === 0 ? (
-      <div className="profileFamilyEmpty">
-        <div className="profileFamilyEmptyIcon">✓</div>
-        <div>
-          <strong>{text.noFamilyRequests}</strong>
-          <p>{text.miniNote}</p>
-        </div>
-      </div>
-    ) : (
-      <div className="profileFamilyRequestList">
-        {familyRequests.map((request) => (
-          <div key={request.id} className="profileFamilyRequestItem">
-            <div className="profileFamilyRequestInfo">
-              <span>{text.requestFrom}</span>
-              <strong>{getFamilyRequestName(request)}</strong>
-            </div>
+                  {familyRequests.length === 0 ? (
+                    <div className="profileFamilyEmpty">
+                      <div className="profileFamilyEmptyIcon">✓</div>
+                      <div>
+                        <strong>{text.noFamilyRequests}</strong>
+                        <p>{text.miniNote}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="profileFamilyRequestList">
+                      {familyRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          className="profileFamilyRequestItem"
+                        >
+                          <div className="profileFamilyRequestInfo">
+                            <span>{text.requestFrom}</span>
+                            <strong>{getFamilyRequestName(request)}</strong>
+                          </div>
 
-            <div className="profileFamilyRequestActions">
-              <button
-                type="button"
-                className="profileProPrimaryBtn"
-                disabled={respondingId === request.id}
-                onClick={() =>
-                  handleRespondFamilyRequest(request.id, "APPROVE")
-                }
-              >
-                {text.approve}
-              </button>
+                          <div className="profileFamilyRequestActions">
+                            <button
+                              type="button"
+                              className="profileProPrimaryBtn"
+                              disabled={respondingId === request.id}
+                              onClick={() =>
+                                handleRespondFamilyRequest(
+                                  request.id,
+                                  "APPROVE"
+                                )
+                              }
+                            >
+                              {text.approve}
+                            </button>
 
-              <button
-                type="button"
-                className="profileProGhostBtn"
-                disabled={respondingId === request.id}
-                onClick={() =>
-                  handleRespondFamilyRequest(request.id, "REJECT")
-                }
-              >
-                {text.reject}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-  </section>
-)}
+                            <button
+                              type="button"
+                              className="profileProGhostBtn"
+                              disabled={respondingId === request.id}
+                              onClick={() =>
+                                handleRespondFamilyRequest(
+                                  request.id,
+                                  "REJECT"
+                                )
+                              }
+                            >
+                              {text.reject}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
 
               <section className="profileProBottomGrid">
                 <div className="profileProCard profileProAboutCard">
@@ -643,28 +686,36 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="profileProActionList">
-  <Link to="/settings" className="profileProActionLink">
-    <span className="profileProActionIcon">⚙</span>
-    <span>{text.goSettings}</span>
-    <strong>›</strong>
-  </Link>
+                    <Link
+                      to="/settings"
+                      className="profileProActionLink"
+                      onClick={goToPageTop}
+                    >
+                      <span className="profileProActionIcon">⚙</span>
+                      <span>{text.goSettings}</span>
+                      <strong>›</strong>
+                    </Link>
 
-  <Link to="/dashboard" className="profileProActionLink">
-    <span className="profileProActionIcon">▦</span>
-    <span>{text.backDashboard}</span>
-    <strong>›</strong>
-  </Link>
+                    <Link
+                      to="/dashboard"
+                      className="profileProActionLink"
+                      onClick={goToPageTop}
+                    >
+                      <span className="profileProActionIcon">▦</span>
+                      <span>{text.backDashboard}</span>
+                      <strong>›</strong>
+                    </Link>
 
-  <button
-    type="button"
-    className="profileProActionButton"
-    onClick={() => setIsEditing(true)}
-  >
-    <span className="profileProActionIcon">✎</span>
-    <span>{text.updateInfo}</span>
-    <strong>›</strong>
-  </button>
-</div>
+                    <button
+                      type="button"
+                      className="profileProActionButton"
+                      onClick={handleUpdateInfo}
+                    >
+                      <span className="profileProActionIcon">✎</span>
+                      <span>{text.updateInfo}</span>
+                      <strong>›</strong>
+                    </button>
+                  </div>
                 </div>
               </section>
             </>

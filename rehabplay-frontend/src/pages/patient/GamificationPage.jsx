@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PatientSubnav from "../../components/PatientSubnav";
 import {
   fetchMyGamification,
@@ -58,8 +58,11 @@ const gamificationText = {
 
     challengesTitle: "Desafios",
     challengesSubtitle: "Acompanha o teu progresso nos desafios ativos.",
-    noChallengesTitle: "Sem desafios ativos",
-    noChallengesText: "Neste momento não existem desafios disponíveis.",
+    noChallengesTitle: "Sem desafios",
+    noChallengesText: "Não existem desafios para este filtro.",
+    allChallenges: "Todos",
+    activeChallenges: "Ativos",
+    completedChallengesFilter: "Concluídos",
     progress: "Progresso",
     completedAt: "Concluído em",
     activeUntil: "Ativo até",
@@ -67,7 +70,15 @@ const gamificationText = {
     rewardsTitle: "Recompensas",
     rewardsSubtitle: "Usa os teus pontos para resgatar recompensas disponíveis.",
     noRewardsTitle: "Sem recompensas",
-    noRewardsText: "Não existem recompensas disponíveis neste momento.",
+    noRewardsText: "Não existem recompensas para este filtro.",
+    allRewards: "Todas",
+    availableRewardsFilter: "Disponíveis",
+    lockedRewardsFilter: "Bloqueadas",
+    redeemedRewardsFilter: "Resgatadas",
+    showMoreRewards: "Ver todas",
+    showLessRewards: "Mostrar menos",
+    available: "Disponível",
+    redeemed: "Resgatada",
     redeeming: "A resgatar...",
     redeem: "Resgatar",
     insufficientPoints: "Pontos insuficientes",
@@ -122,21 +133,23 @@ const gamificationText = {
     badgesCollectionSubtitle:
       "Check unlocked badges and the ones you can still unlock.",
     noBadgesTitle: "No badges yet",
-    noBadgesText:
-      "Keep using the platform to start unlocking achievements.",
+    noBadgesText: "Keep using the platform to start unlocking achievements.",
     all: "All",
     earned: "Unlocked",
     lockedOnly: "Locked",
     locked: "Locked",
     unlocked: "Unlocked",
-    progressToUnlock: "Progress to unlock",
+    progressToUnlock: "Unlock progress",
     showMoreBadges: "View all",
     showLessBadges: "Show less",
 
     challengesTitle: "Challenges",
     challengesSubtitle: "Track your progress in active challenges.",
-    noChallengesTitle: "No active challenges",
-    noChallengesText: "There are no challenges available right now.",
+    noChallengesTitle: "No challenges",
+    noChallengesText: "There are no challenges for this filter.",
+    allChallenges: "All",
+    activeChallenges: "Active",
+    completedChallengesFilter: "Completed",
     progress: "Progress",
     completedAt: "Completed on",
     activeUntil: "Active until",
@@ -144,7 +157,15 @@ const gamificationText = {
     rewardsTitle: "Rewards",
     rewardsSubtitle: "Use your points to redeem available rewards.",
     noRewardsTitle: "No rewards",
-    noRewardsText: "There are no rewards available right now.",
+    noRewardsText: "There are no rewards for this filter.",
+    allRewards: "All",
+    availableRewardsFilter: "Available",
+    lockedRewardsFilter: "Locked",
+    redeemedRewardsFilter: "Redeemed",
+    showMoreRewards: "View all",
+    showLessRewards: "Show less",
+    available: "Available",
+    redeemed: "Redeemed",
     redeeming: "Redeeming...",
     redeem: "Redeem",
     insufficientPoints: "Not enough points",
@@ -183,15 +204,21 @@ function translateBackendText(value, language, fallback = "") {
 
     "50 Pontos": "50 Points",
     "Atinge 50 pontos.": "Reach 50 points.",
+    "Atingiste 50 pontos.": "Reach 50 points.",
     "100 Pontos": "100 Points",
     "Atinge 100 pontos.": "Reach 100 points.",
+    "Atingiste 100 pontos.": "Reach 100 points.",
     "200 Pontos": "200 Points",
     "Atinge 200 pontos.": "Reach 200 points.",
+    "Atingiste 200 pontos.": "Reach 200 points.",
 
     "Sequência de 3 Dias": "3 Day Streak",
+    "Streak 3": "3 Day Streak",
     "Mantém uma sequência de 3 dias.": "Maintain a 3-day streak.",
+    "3 dias seguidos a treinar.": "Train for 3 days in a row.",
     "Semana Consistente": "Consistent Week",
     "Mantém uma sequência de 7 dias.": "Maintain a 7-day streak.",
+    "7 dias seguidos a treinar.": "Train for 7 days in a row.",
 
     "Primeiro Desafio": "First Challenge",
     "Completa o teu primeiro desafio.": "Complete your first challenge.",
@@ -211,13 +238,55 @@ function translateBackendText(value, language, fallback = "") {
     "3 treinos esta semana": "3 workouts this week",
     "Regista 3 progressos esta semana e ganha 20 pontos!":
       "Log 3 progress records this week and earn 20 points!",
+
+    "Treinar 10 minutos esta semana": "Workout for 10 minutes this week",
+    "Treinar 3 dias seguidos": "Workout for 3 days straight",
+    "Treina durante 10 minutos esta semana": "Workout for 10 minutes this week",
+    "Treina 3 dias seguidos": "Workout for 3 days straight",
+
     "Desbloquear Tema Premium": "Unlock Premium Theme",
-    "Acesso a temas premium": "Access to premium themes",
+    "Acesso a temas premium.": "Access to premium themes.",
+    "Badge Motivacional": "Motivational Badge",
+    "Recebe uma badge simbólica de motivação.":
+      "Receive a symbolic motivational badge.",
+    "Destaque no Perfil": "Profile Highlight",
+    "Adiciona um destaque especial ao teu perfil.":
+      "Add a special highlight to your profile.",
+    "Título Campeão da Recuperação": "Recovery Champion Title",
+    "Desbloqueia um título especial de recuperação.":
+      "Unlock a special recovery title.",
+    "Conquista Especial": "Special Achievement",
+    "Recebe uma conquista especial pelo teu esforço.":
+      "Receive a special achievement for your effort.",
   };
 
-  const enToPt = Object.fromEntries(
-    Object.entries(ptToEn).map(([pt, en]) => [en, pt])
-  );
+  const customEnToPt = {
+    "Workout for 10 minutes this week": "Treinar 10 minutos esta semana",
+    "Workout for 3 days straight": "Treinar 3 dias seguidos",
+    "Log 3 progress records this week and earn 20 points!":
+      "Regista 3 progressos esta semana e ganha 20 pontos!",
+    "3 workouts this week": "3 treinos esta semana",
+    "Unlock Premium Theme": "Desbloquear Tema Premium",
+    "Access to premium themes.": "Acesso a temas premium.",
+    "Access to premium themes": "Acesso a temas premium.",
+    "Motivational Badge": "Badge Motivacional",
+    "Receive a symbolic motivational badge.":
+      "Recebe uma badge simbólica de motivação.",
+    "Profile Highlight": "Destaque no Perfil",
+    "Add a special highlight to your profile.":
+      "Adiciona um destaque especial ao teu perfil.",
+    "Recovery Champion Title": "Título Campeão da Recuperação",
+    "Unlock a special recovery title.":
+      "Desbloqueia um título especial de recuperação.",
+    "Special Achievement": "Conquista Especial",
+    "Receive a special achievement for your effort.":
+      "Recebe uma conquista especial pelo teu esforço.",
+  };
+
+  const enToPt = {
+    ...Object.fromEntries(Object.entries(ptToEn).map(([pt, en]) => [en, pt])),
+    ...customEnToPt,
+  };
 
   const dictionary = language === "en" ? ptToEn : enToPt;
 
@@ -241,6 +310,17 @@ function formatDate(value, language, text) {
   });
 }
 
+function capProgress(current, target) {
+  const currentNumber = Number(current || 0);
+  const targetNumber = Number(target || 0);
+
+  if (!targetNumber || targetNumber <= 0) {
+    return currentNumber;
+  }
+
+  return Math.min(currentNumber, targetNumber);
+}
+
 function challengeProgressPercent(challenge) {
   const target = Number(challenge.goal_target || 0);
   const current = Number(
@@ -254,6 +334,7 @@ function challengeProgressPercent(challenge) {
 export default function GamificationPage() {
   const { language } = useAppPreferences();
   const text = gamificationText[language] || gamificationText["pt-PT"];
+  const location = useLocation();
 
   const [summary, setSummary] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -264,8 +345,15 @@ export default function GamificationPage() {
   const [error, setError] = useState("");
   const [redeemingId, setRedeemingId] = useState(null);
   const [success, setSuccess] = useState("");
+
   const [badgeFilter, setBadgeFilter] = useState("ALL");
   const [showAllBadges, setShowAllBadges] = useState(false);
+
+  const [challengeFilter, setChallengeFilter] = useState("ALL");
+  const [showAllChallenges, setShowAllChallenges] = useState(false);
+
+  const [rewardFilter, setRewardFilter] = useState("ALL");
+  const [showAllRewards, setShowAllRewards] = useState(false);
 
   useEffect(() => {
     async function loadGamification() {
@@ -294,6 +382,25 @@ export default function GamificationPage() {
 
     loadGamification();
   }, [text.loadError]);
+
+  useEffect(() => {
+  if (loading || error || !location.hash) return;
+
+  const targetId = location.hash.replace("#", "");
+
+  const timeout = setTimeout(() => {
+    const element = document.getElementById(targetId);
+
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, 300);
+
+  return () => clearTimeout(timeout);
+}, [loading, error, location.hash]);
 
   const stats = summary?.stats || {};
   const allBadges = summary?.all_badges || [];
@@ -327,10 +434,55 @@ export default function GamificationPage() {
     return [];
   }, [challenges, summary]);
 
+  const filteredChallenges = useMemo(() => {
+    if (challengeFilter === "ACTIVE") {
+      return visibleChallenges.filter((challenge) => !challenge.completed_at);
+    }
+
+    if (challengeFilter === "COMPLETED") {
+      return visibleChallenges.filter((challenge) => challenge.completed_at);
+    }
+
+    return visibleChallenges;
+  }, [visibleChallenges, challengeFilter]);
+
+  const visibleChallengeCards = useMemo(() => {
+    if (showAllChallenges) return filteredChallenges;
+    return filteredChallenges.slice(0, 2);
+  }, [filteredChallenges, showAllChallenges]);
+
   const completedChallenges = useMemo(() => {
     return visibleChallenges.filter((challenge) => challenge.completed_at).length;
   }, [visibleChallenges]);
 
+  const filteredRewards = useMemo(() => {
+    if (rewardFilter === "AVAILABLE") {
+      return rewards.filter(
+        (reward) =>
+          !reward.redeemed &&
+          Number(stats.total_points || 0) >= Number(reward.cost_points || 0)
+      );
+    }
+
+    if (rewardFilter === "LOCKED") {
+      return rewards.filter(
+        (reward) =>
+          !reward.redeemed &&
+          Number(stats.total_points || 0) < Number(reward.cost_points || 0)
+      );
+    }
+
+    if (rewardFilter === "REDEEMED") {
+      return rewards.filter((reward) => reward.redeemed);
+    }
+
+    return rewards;
+  }, [rewards, rewardFilter, stats.total_points]);
+
+  const visibleRewardCards = useMemo(() => {
+  if (showAllRewards) return filteredRewards;
+  return filteredRewards.slice(0, 3);
+}, [filteredRewards, showAllRewards]);
   async function handleRedeemReward(rewardId) {
     try {
       setRedeemingId(rewardId);
@@ -340,6 +492,12 @@ export default function GamificationPage() {
       const result = await redeemReward(rewardId);
 
       setSuccess(text.redeemSuccess);
+
+      setRewards((prev) =>
+        prev.map((reward) =>
+          reward.id === rewardId ? { ...reward, redeemed: true } : reward
+        )
+      );
 
       setSummary((prev) => {
         if (!prev) return prev;
@@ -496,7 +654,7 @@ export default function GamificationPage() {
                 </div>
               </section>
 
-              <section className="gamiPrimeSectionTitle">
+              <section className="gamiPrimeSectionTitle" id="badges">
                 <div>
                   <h2>{text.badgesCollectionTitle}</h2>
                   <p>{text.badgesCollectionSubtitle}</p>
@@ -592,7 +750,8 @@ export default function GamificationPage() {
                       <div className="gamiPrimeBadgeProgressMeta">
                         <span>{text.progressToUnlock}</span>
                         <strong>
-                          {badge.current_value ?? 0} / {badge.threshold ?? 0}
+                          {capProgress(badge.current_value, badge.threshold)} /{" "}
+                          {badge.threshold ?? 0}
                         </strong>
                       </div>
 
@@ -612,7 +771,7 @@ export default function GamificationPage() {
                 )}
               </section>
 
-              <section className="gamiPrimeSectionTitle">
+              <section className="gamiPrimeSectionTitle" id="challenges">
                 <div>
                   <h2>{text.challengesTitle}</h2>
                   <p>{text.challengesSubtitle}</p>
@@ -623,14 +782,62 @@ export default function GamificationPage() {
                 </div>
               </section>
 
+              <div className="gamiPrimeChallengeToolbar">
+                <div className="gamiPrimeChallengeFilters">
+                  <button
+                    type="button"
+                    className={challengeFilter === "ALL" ? "isActive" : ""}
+                    onClick={() => {
+                      setChallengeFilter("ALL");
+                      setShowAllChallenges(false);
+                    }}
+                  >
+                    {text.allChallenges}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={challengeFilter === "ACTIVE" ? "isActive" : ""}
+                    onClick={() => {
+                      setChallengeFilter("ACTIVE");
+                      setShowAllChallenges(false);
+                    }}
+                  >
+                    {text.activeChallenges}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={challengeFilter === "COMPLETED" ? "isActive" : ""}
+                    onClick={() => {
+                      setChallengeFilter("COMPLETED");
+                      setShowAllChallenges(false);
+                    }}
+                  >
+                    {text.completedChallengesFilter}
+                  </button>
+                </div>
+
+                {filteredChallenges.length > 2 && (
+                  <button
+                    type="button"
+                    className="gamiPrimeBadgeToggle"
+                    onClick={() => setShowAllChallenges((prev) => !prev)}
+                  >
+                    {showAllChallenges ? text.showLessBadges : text.showMoreBadges}
+                    <span>{showAllChallenges ? "↑" : "↓"}</span>
+                  </button>
+                )}
+              </div>
+
               <section className="gamiPrimeChallenges">
-                {visibleChallenges.length === 0 ? (
+                {visibleChallengeCards.length === 0 ? (
                   <div className="gamiPrimeEmptyCard">
                     <h3>{text.noChallengesTitle}</h3>
                     <p>{text.noChallengesText}</p>
                   </div>
                 ) : (
-                  visibleChallenges.map((challenge, index) => {
+                  visibleChallengeCards.map((challenge, index) => {
                     const progress = challengeProgressPercent(challenge);
                     const current =
                       challenge.user_progress_value ??
@@ -667,7 +874,8 @@ export default function GamificationPage() {
                         <div className="gamiPrimeChallengeMeta">
                           <span>{text.progress}</span>
                           <strong>
-                            {current} / {challenge.goal_target ?? 0}
+                            {capProgress(current, challenge.goal_target)} /{" "}
+                            {challenge.goal_target ?? 0}
                           </strong>
                         </div>
 
@@ -694,7 +902,7 @@ export default function GamificationPage() {
                 )}
               </section>
 
-              <section className="gamiPrimeSectionTitle">
+              <section className="gamiPrimeSectionTitle" id="rewards">
                 <div>
                   <h2>{text.rewardsTitle}</h2>
                   <p>{text.rewardsSubtitle}</p>
@@ -705,43 +913,122 @@ export default function GamificationPage() {
                 </div>
               </section>
 
+              <div className="gamiPrimeChallengeToolbar">
+                <div className="gamiPrimeChallengeFilters">
+                  <button
+                    type="button"
+                    className={rewardFilter === "ALL" ? "isActive" : ""}
+                    onClick={() => {
+                      setRewardFilter("ALL");
+                      setShowAllRewards(false);
+                    }}
+                  >
+                    {text.allRewards}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={rewardFilter === "AVAILABLE" ? "isActive" : ""}
+                    onClick={() => {
+                      setRewardFilter("AVAILABLE");
+                      setShowAllRewards(false);
+                    }}
+                  >
+                    {text.availableRewardsFilter}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={rewardFilter === "LOCKED" ? "isActive" : ""}
+                    onClick={() => {
+                      setRewardFilter("LOCKED");
+                      setShowAllRewards(false);
+                    }}
+                  >
+                    {text.lockedRewardsFilter}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={rewardFilter === "REDEEMED" ? "isActive" : ""}
+                    onClick={() => {
+                      setRewardFilter("REDEEMED");
+                      setShowAllRewards(false);
+                    }}
+                  >
+                    {text.redeemedRewardsFilter}
+                  </button>
+                </div>
+
+                {filteredRewards.length > 3 && (
+                  <button
+                    type="button"
+                    className="gamiPrimeBadgeToggle"
+                    onClick={() => setShowAllRewards((prev) => !prev)}
+                  >
+                    {showAllRewards ? text.showLessRewards : text.showMoreRewards}
+                    <span>{showAllRewards ? "↑" : "↓"}</span>
+                  </button>
+                )}
+              </div>
+
               <section className="gamiPrimeRewards">
-                {rewards.length === 0 ? (
+                {visibleRewardCards.length === 0 ? (
                   <div className="gamiPrimeEmptyCard">
                     <h3>{text.noRewardsTitle}</h3>
                     <p>{text.noRewardsText}</p>
                   </div>
                 ) : (
-                  rewards.map((reward) => {
+                  visibleRewardCards.map((reward) => {
                     const canRedeem =
                       Number(stats.total_points || 0) >=
                       Number(reward.cost_points || 0);
 
                     return (
-                      <article key={reward.id} className="gamiPrimeReward">
+                      <article
+                        key={reward.id}
+                        className={`gamiPrimeReward ${
+                          reward.redeemed ? "isRedeemed" : ""
+                        }`}
+                      >
                         <div className="gamiPrimeRewardTop">
-                          <div className="gamiPrimeRewardIcon">◇</div>
-                          <span>
-                            {reward.cost_points} {text.pointsShort}
-                          </span>
-                        </div>
+  <div className="gamiPrimeRewardIcon">◇</div>
 
-                        <h3>{translateBackendText(reward.title, language)}</h3>
+  <span>
+    {reward.cost_points} {text.pointsShort}
+  </span>
+</div>
 
-                        <p>
-                          {translateBackendText(
-                            reward.description,
-                            language,
-                            ""
-                          )}
-                        </p>
+<h3>{translateBackendText(reward.title, language)}</h3>
+
+<p>
+  {translateBackendText(
+    reward.description,
+    language,
+    ""
+  )}
+</p>
+
+<div className="gamiPrimeRewardStatus">
+  {reward.redeemed
+    ? text.redeemed
+    : canRedeem
+    ? text.available
+    : text.locked}
+</div>
 
                         <button
                           type="button"
                           onClick={() => handleRedeemReward(reward.id)}
-                          disabled={!canRedeem || redeemingId === reward.id}
+                          disabled={
+                            reward.redeemed ||
+                            !canRedeem ||
+                            redeemingId === reward.id
+                          }
                         >
-                          {redeemingId === reward.id
+                          {reward.redeemed
+                            ? text.redeemed
+                            : redeemingId === reward.id
                             ? text.redeeming
                             : canRedeem
                             ? text.redeem

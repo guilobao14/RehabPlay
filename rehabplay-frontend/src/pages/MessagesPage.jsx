@@ -323,9 +323,15 @@ export default function MessagesPage() {
   }, [selectedThreadId, loadMessages]);
 
   useEffect(() => {
-    if (!chatEndRef.current) return;
-    chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages, selectedThreadId]);
+  const chatBody = document.querySelector(".msgUltraChatBody");
+
+  if (!chatBody) return;
+
+  chatBody.scrollTo({
+    top: chatBody.scrollHeight,
+    behavior: "smooth",
+  });
+}, [messages, selectedThreadId]);
 
   const threadCards = useMemo(() => {
     return threads.map((thread) => {

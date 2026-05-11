@@ -19,7 +19,7 @@ from .serializers import ProgressEntryTherapistSerializer
 
 from .models import MessageThread
 from .serializers import MessageThreadSerializer, MessageSerializer, SendMessageSerializer
-from .services import list_threads_for_user, ensure_threads_exist_for_therapist, send_message_in_thread, ensure_thread_allowed_for_user
+from .services import list_threads_for_user, send_message_in_thread, ensure_thread_allowed_for_user
 
 from .models import Exercise
 from .serializers import ExerciseSerializer
@@ -71,8 +71,37 @@ class ThreadListView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
-        ensure_threads_exist_for_therapist(request.user)
-        threads = list_threads_for_user(request.user).select_related("patient", "therapist")
+        role = getattr(getattr(request.user, "profile", None), "role", None)
+
+        if role == "THERAPIST":
+            plans = RehabPlan.objects.filter(
+                therapist=request.user,
+                patient__isnull=False,
+            ).select_related("patient")
+
+            for plan in plans:
+                MessageThread.objects.get_or_create(
+                    patient=plan.patient,
+                    therapist=request.user,
+                )
+
+        elif role == "PATIENT":
+            plans = RehabPlan.objects.filter(
+                patient=request.user,
+                therapist__isnull=False,
+            ).select_related("therapist")
+
+            for plan in plans:
+                MessageThread.objects.get_or_create(
+                    patient=request.user,
+                    therapist=plan.therapist,
+                )
+
+        threads = list_threads_for_user(request.user).select_related(
+            "patient",
+            "therapist",
+        )
+
         return Response(MessageThreadSerializer(threads, many=True).data)
 
 class ThreadMessageListCreateView(APIView):
@@ -151,6 +180,11 @@ class PlanListCreateView(APIView):
             title=ser.validated_data["title"],
             is_active=is_active,
         )
+
+        MessageThread.objects.get_or_create(
+    patient=patient,
+    therapist=request.user,
+)
 
         notify(
     user=plan.patient,

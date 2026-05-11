@@ -7,6 +7,10 @@ class NotificationType(models.TextChoices):
     NEW_MESSAGE = "NEW_MESSAGE", "New message"
     RESOURCE_ADDED = "RESOURCE_ADDED", "Resource added"
     SESSION_SCHEDULED = "SESSION_SCHEDULED", "Session scheduled"
+
+    BADGE_UNLOCKED = "BADGE_UNLOCKED", "Badge unlocked"
+    REWARD_REDEEMED = "REWARD_REDEEMED", "Reward redeemed"
+    CHALLENGE_COMPLETED = "CHALLENGE_COMPLETED", "Challenge completed"
     
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")

@@ -205,7 +205,7 @@ export default function FamilyLinksPage() {
 
   useEffect(() => {
     loadLinks();
-  }, [text]);
+  }, [language]);
 
   const approvedLinks = useMemo(() => {
     return links.filter((item) => String(item.status).toUpperCase() === "APPROVED");

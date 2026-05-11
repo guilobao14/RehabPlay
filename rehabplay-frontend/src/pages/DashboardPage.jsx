@@ -6,6 +6,7 @@ import {
   fetchActivePlan,
   fetchMyProgress,
   fetchMyGamification,
+  fetchRewards,
 } from "../api/patient";
 import { fetchNotifications } from "../api/notifications";
 
@@ -51,7 +52,12 @@ const dashboardText = {
     motivation: "Motivação",
     gamification: "Gamificação",
     badges: "Badges",
+    challenges: "Desafios",
+    rewards: "Recompensas",
     points: "Pontos",
+    openBadges: "Ver badges",
+    openChallenges: "Ver desafios",
+    openRewards: "Ver recompensas",
     accumulatedPerformance: "Desempenho acumulado",
     motivationText:
       "Continua consistente para reforçar a tua progressão na plataforma.",
@@ -91,6 +97,7 @@ const dashboardText = {
     errorLoad: "Erro ao carregar dashboard.",
     errorLogout: "Erro ao terminar sessão.",
   },
+
   en: {
     noDate: "No date",
     week: "Week",
@@ -131,7 +138,12 @@ const dashboardText = {
     motivation: "Motivation",
     gamification: "Gamification",
     badges: "Badges",
+    challenges: "Challenges",
+    rewards: "Rewards",
     points: "Points",
+    openBadges: "View badges",
+    openChallenges: "View challenges",
+    openRewards: "View rewards",
     accumulatedPerformance: "Accumulated performance",
     motivationText: "Keep consistent to strengthen your progress on the platform.",
     quickActions: "Quick actions",
@@ -172,6 +184,14 @@ const dashboardText = {
   },
 };
 
+
+function scrollTopAfterNavigation() {
+  setTimeout(() => {
+    window.scrollTo(0, 0);
+  }, 100);
+}
+
+
 function getWeekLabel(dateString, t) {
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return t.noDate;
@@ -200,6 +220,7 @@ export default function DashboardPage() {
   const [progressEntries, setProgressEntries] = useState([]);
   const [gamification, setGamification] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [rewards, setRewards] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -214,12 +235,14 @@ export default function DashboardPage() {
           progressData,
           gamificationData,
           notificationsData,
+          rewardsData,
         ] = await Promise.all([
           fetchMyProfile().catch(() => null),
           fetchActivePlan().catch(() => null),
           fetchMyProgress().catch(() => []),
           fetchMyGamification().catch(() => null),
           fetchNotifications().catch(() => []),
+          fetchRewards().catch(() => []),
         ]);
 
         setProfile(profileData);
@@ -227,6 +250,7 @@ export default function DashboardPage() {
         setProgressEntries(Array.isArray(progressData) ? progressData : []);
         setGamification(gamificationData);
         setNotifications(Array.isArray(notificationsData) ? notificationsData : []);
+        setRewards(Array.isArray(rewardsData) ? rewardsData : []);
       } catch (err) {
         setError(err.message || t.errorLoad);
       } finally {
@@ -295,7 +319,19 @@ export default function DashboardPage() {
 
   const stats = gamification?.stats || {};
   const badges = gamification?.badges || [];
+  const allBadges = gamification?.all_badges || [];
+  const dashboardChallenges = gamification?.challenges || [];
+  const redemptions = gamification?.redemptions || [];
   const totalPoints = stats.total_points ?? 0;
+
+  const unlockedBadgesCount =
+    allBadges.filter((badge) => badge.unlocked).length || badges.length;
+
+  const completedChallengesCount = dashboardChallenges.filter(
+    (challenge) => challenge.completed_at
+  ).length;
+
+  const redeemedRewardsCount = redemptions.length;
 
   const statusText = plan?.is_active ? t.activePlan : t.noActivePlan;
   const weeklyState = totalExercises > 0 ? t.goodEvolution : t.noActivity;
@@ -315,7 +351,7 @@ export default function DashboardPage() {
     try {
       setLoggingOut(true);
       await logout();
-      navigate("/login");
+      navigate("/login", { replace: true });
     } catch (err) {
       setError(err.message || t.errorLogout);
     } finally {
@@ -500,15 +536,45 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="dashPrimeMotivationWrap">
-                    <div className="dashPrimeMetricMini">
+                    <Link
+                      to="/patient/gamification#badges"
+                      className="dashPrimeMetricMini dashPrimeMetricLink"
+                    >
                       <span>{t.badges}</span>
-                      <strong>{badges.length}</strong>
-                    </div>
+                      <strong>{unlockedBadgesCount}</strong>
+                      <small>{t.openBadges}</small>
+                    </Link>
 
-                    <div className="dashPrimeMetricMini">
+                    <Link
+                      to="/patient/gamification#challenges"
+                      className="dashPrimeMetricMini dashPrimeMetricLink"
+                    >
+                      <span>{t.challenges}</span>
+                      <strong>
+                        {completedChallengesCount}/{dashboardChallenges.length}
+                      </strong>
+                      <small>{t.openChallenges}</small>
+                    </Link>
+
+                    <Link
+                      to="/patient/gamification#rewards"
+                      className="dashPrimeMetricMini dashPrimeMetricLink"
+                    >
+                      <span>{t.rewards}</span>
+                      <strong>
+                        {redeemedRewardsCount}/{rewards.length}
+                      </strong>
+                      <small>{t.openRewards}</small>
+                    </Link>
+
+                    <Link
+                      to="/patient/gamification"
+                      className="dashPrimeMetricMini dashPrimeMetricLink"
+                    >
                       <span>{t.points}</span>
                       <strong>{totalPoints}</strong>
-                    </div>
+                      <small>{t.seeGamification}</small>
+                    </Link>
                   </div>
 
                   <div className="dashPrimeScoreBlock">
@@ -540,7 +606,7 @@ export default function DashboardPage() {
               </section>
 
               <section className="dashPrimeActionsGrid">
-                <Link to="/patient/plan" className="dashPrimeActionCard">
+                <Link to="/patient/plan" className="dashPrimeActionCard" onClick={() => window.scrollTo(0, 0)}>
                   <div className="dashPrimeActionTop">
                     <span className="dashPrimeActionPill">{t.plan}</span>
                   </div>
@@ -549,7 +615,7 @@ export default function DashboardPage() {
                   <span className="dashPrimeActionLink">{t.openPlan}</span>
                 </Link>
 
-                <Link to="/patient/gamification" className="dashPrimeActionCard">
+                <Link to="/patient/gamification" className="dashPrimeActionCard" onClick={() => window.scrollTo(0, 0)}>
                   <div className="dashPrimeActionTop">
                     <span className="dashPrimeActionPill">{t.progress}</span>
                   </div>
@@ -558,7 +624,7 @@ export default function DashboardPage() {
                   <span className="dashPrimeActionLink">{t.seeGamification}</span>
                 </Link>
 
-                <Link to="/messages" className="dashPrimeActionCard">
+                <Link to="/messages" className="dashPrimeActionCard" onClick={() => window.scrollTo(0, 0)}>
                   <div className="dashPrimeActionTop">
                     <span className="dashPrimeActionPill">{t.communication}</span>
                   </div>
@@ -622,12 +688,14 @@ export default function DashboardPage() {
                       <Link
                         to="/notifications"
                         className="dashPrimeBtn dashPrimeBtnPrimary"
+                        onClick={scrollTopAfterNavigation}
                       >
                         {t.seeNotifications}
                       </Link>
                       <Link
                         to="/messages"
                         className="dashPrimeBtn dashPrimeBtnGhost"
+                        onClick={scrollTopAfterNavigation}
                       >
                         {t.goMessages}
                       </Link>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PatientSubnav from "../../components/PatientSubnav";
-import { fetchActivePlan } from "../../api/patient";
+import { fetchActivePlan, fetchMyProgress } from "../../api/patient";
 import { useAppPreferences } from "../../context/AppPreferencesContext.jsx";
 
 const planText = {
@@ -196,7 +196,8 @@ export default function MyPlanPage() {
   const navigate = useNavigate();
   const { language } = useAppPreferences();
   const text = planText[language] || planText["pt-PT"];
-
+  
+  const [progressEntries, setProgressEntries] = useState([]);
   const [plan, setPlan] = useState(null);
   const [sortBy, setSortBy] = useState("plan");
   const [loading, setLoading] = useState(true);
@@ -204,15 +205,20 @@ export default function MyPlanPage() {
 
   useEffect(() => {
     async function loadPlan() {
-      try {
-        const data = await fetchActivePlan();
-        setPlan(data);
-      } catch (err) {
-        setError(err.message || text.loadError);
-      } finally {
-        setLoading(false);
-      }
-    }
+  try {
+    const [planData, progressData] = await Promise.all([
+      fetchActivePlan(),
+      fetchMyProgress().catch(() => []),
+    ]);
+
+    setPlan(planData);
+    setProgressEntries(Array.isArray(progressData) ? progressData : []);
+  } catch (err) {
+    setError(err.message || text.loadError);
+  } finally {
+    setLoading(false);
+  }
+}
 
     loadPlan();
   }, [text.loadError]);
@@ -243,8 +249,22 @@ export default function MyPlanPage() {
     }
   }, [plan, sortBy]);
 
-  const completedCount = 0;
-  const pendingCount = items.length;
+  const completedCount = useMemo(() => {
+  if (!items.length || !progressEntries.length) return 0;
+
+  const planItemIds = new Set(items.map((item) => item.id));
+  const completedItems = new Set();
+
+  progressEntries.forEach((entry) => {
+    if (planItemIds.has(entry.plan_item)) {
+      completedItems.add(entry.plan_item);
+    }
+  });
+
+  return completedItems.size;
+}, [items, progressEntries]);
+
+const pendingCount = Math.max(items.length - completedCount, 0);
 
   const totalWeeklyFrequency = useMemo(() => {
     return items.reduce(
@@ -452,7 +472,12 @@ export default function MyPlanPage() {
               </section>
 
               <section className="planPremiumBottomGrid">
-                <div className="planPremiumSummary">
+                <div
+  className={`planPremiumSummary ${
+    completedPercentage === 100 ? "isComplete" : ""
+  }`}
+  style={{ "--progress": `${completedPercentage}%` }}
+>
                   <div className="planPremiumCardTitle">
                     <div className="planPremiumCardIcon">▤</div>
                     <h3>{text.quickSummary}</h3>

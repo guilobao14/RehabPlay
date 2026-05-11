@@ -11,6 +11,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from notifications.services import notify
+from notifications.models import NotificationType
+
 from accounts.permissions import IsAuthenticatedOTP
 from audit.models import AuditAction
 from audit.services import log_action
@@ -113,6 +116,40 @@ DEFAULT_BADGES = [
 ]
 
 
+DEFAULT_REWARDS = [
+    {
+        "code": "PREMIUM_THEME",
+        "title": "Desbloquear Tema Premium",
+        "description": "Acesso a temas premium.",
+        "cost_points": 25,
+    },
+    {
+        "code": "MOTIVATIONAL_BADGE",
+        "title": "Badge Motivacional",
+        "description": "Recebe uma badge simbólica de motivação.",
+        "cost_points": 50,
+    },
+    {
+        "code": "PROFILE_HIGHLIGHT",
+        "title": "Destaque no Perfil",
+        "description": "Adiciona um destaque especial ao teu perfil.",
+        "cost_points": 75,
+    },
+    {
+        "code": "RECOVERY_CHAMPION",
+        "title": "Título Campeão da Recuperação",
+        "description": "Desbloqueia um título especial de recuperação.",
+        "cost_points": 100,
+    },
+    {
+        "code": "SPECIAL_ACHIEVEMENT",
+        "title": "Conquista Especial",
+        "description": "Recebe uma conquista especial pelo teu esforço.",
+        "cost_points": 150,
+    },
+]
+
+
 def ensure_default_badges():
     for item in DEFAULT_BADGES:
         badge, _ = Badge.objects.get_or_create(
@@ -135,6 +172,25 @@ def ensure_default_badges():
                 "threshold": item["threshold"],
             },
         )
+
+
+def ensure_default_rewards():
+    for item in DEFAULT_REWARDS:
+        reward, _ = Reward.objects.get_or_create(
+            code=item["code"],
+            defaults={
+                "title": item["title"],
+                "description": item["description"],
+                "cost_points": item["cost_points"],
+                "is_active": True,
+            },
+        )
+
+        reward.title = item["title"]
+        reward.description = item["description"]
+        reward.cost_points = item["cost_points"]
+        reward.is_active = True
+        reward.save()
 
 
 def is_patient_user(user):
@@ -178,6 +234,7 @@ def get_badge_progress(user, rule_type):
 
     if rule_type == BadgeRuleType.PROGRESS_COUNT:
         from rehab.models import ProgressEntry
+
         return ProgressEntry.objects.filter(patient=user).count()
 
     if rule_type == BadgeRuleType.POINTS_TOTAL:
@@ -211,7 +268,20 @@ def award_available_badges(user):
         current_value = get_badge_progress(user, rule.rule_type)
 
         if current_value >= rule.threshold:
-            UserBadge.objects.get_or_create(user=user, badge=rule.badge)
+            user_badge, created = UserBadge.objects.get_or_create(
+                user=user,
+                badge=rule.badge,
+            )
+
+            if created:
+                notify(
+                    user=user,
+                    ntype=NotificationType.BADGE_UNLOCKED,
+                    title="Nova badge desbloqueada",
+                    body=f"Desbloqueaste a badge: {rule.badge.name}",
+                    object_type="Badge",
+                    object_id=rule.badge.id,
+                )
 
 
 class MyGamificationSummaryView(APIView):
@@ -221,6 +291,7 @@ class MyGamificationSummaryView(APIView):
         stats, _ = UserGamificationStats.objects.get_or_create(user=request.user)
 
         award_available_badges(request.user)
+        ensure_default_rewards()
 
         badges = (
             UserBadge.objects.filter(user=request.user)
@@ -244,16 +315,23 @@ class MyGamificationSummaryView(APIView):
                 threshold = rule.threshold
                 rule_type = rule.rule_type
 
-            all_badges.append({
-                "code": badge.code,
-                "name": badge.name,
-                "description": badge.description,
-                "unlocked": badge.code in earned_codes,
-                "current_value": current_value,
-                "threshold": threshold,
-                "rule_type": rule_type,
-                "progress_percent": min(100, round((current_value / threshold) * 100)) if threshold else 0,
-            })
+            all_badges.append(
+                {
+                    "code": badge.code,
+                    "name": badge.name,
+                    "description": badge.description,
+                    "unlocked": badge.code in earned_codes,
+                    "current_value": current_value,
+                    "threshold": threshold,
+                    "rule_type": rule_type,
+                    "progress_percent": min(
+                        100,
+                        round((current_value / threshold) * 100),
+                    )
+                    if threshold
+                    else 0,
+                }
+            )
 
         challenges = (
             UserChallenge.objects.filter(user=request.user)
@@ -267,51 +345,53 @@ class MyGamificationSummaryView(APIView):
             .order_by("-redeemed_at")[:20]
         )
 
-        return Response({
-            "user": request.user.username,
-            "stats": {
-                "total_points": stats.total_points,
-                "level": stats.level,
-                "current_streak": stats.current_streak,
-                "best_streak": stats.best_streak,
-                "last_activity_date": stats.last_activity_date,
-            },
-            "badges": [
-                {
-                    "code": ub.badge.code,
-                    "name": ub.badge.name,
-                    "description": ub.badge.description,
-                    "awarded_at": ub.awarded_at,
-                }
-                for ub in badges
-            ],
-            "all_badges": all_badges,
-            "challenges": [
-                {
-                    "code": uc.challenge.code,
-                    "title": uc.challenge.title,
-                    "description": uc.challenge.description,
-                    "goal_type": uc.challenge.goal_type,
-                    "goal_target": uc.challenge.goal_target,
-                    "progress_value": uc.progress_value,
-                    "reward_points": uc.challenge.reward_points,
-                    "starts_at": uc.challenge.starts_at,
-                    "ends_at": uc.challenge.ends_at,
-                    "is_active": uc.challenge.is_active,
-                    "completed_at": uc.completed_at,
-                }
-                for uc in challenges
-            ],
-            "redemptions": [
-                {
-                    "reward_code": rr.reward.code,
-                    "reward_title": rr.reward.title,
-                    "cost_points": rr.cost_points,
-                    "redeemed_at": rr.redeemed_at,
-                }
-                for rr in redemptions
-            ],
-        })
+        return Response(
+            {
+                "user": request.user.username,
+                "stats": {
+                    "total_points": stats.total_points,
+                    "level": stats.level,
+                    "current_streak": stats.current_streak,
+                    "best_streak": stats.best_streak,
+                    "last_activity_date": stats.last_activity_date,
+                },
+                "badges": [
+                    {
+                        "code": ub.badge.code,
+                        "name": ub.badge.name,
+                        "description": ub.badge.description,
+                        "awarded_at": ub.awarded_at,
+                    }
+                    for ub in badges
+                ],
+                "all_badges": all_badges,
+                "challenges": [
+                    {
+                        "code": uc.challenge.code,
+                        "title": uc.challenge.title,
+                        "description": uc.challenge.description,
+                        "goal_type": uc.challenge.goal_type,
+                        "goal_target": uc.challenge.goal_target,
+                        "progress_value": uc.progress_value,
+                        "reward_points": uc.challenge.reward_points,
+                        "starts_at": uc.challenge.starts_at,
+                        "ends_at": uc.challenge.ends_at,
+                        "is_active": uc.challenge.is_active,
+                        "completed_at": uc.completed_at,
+                    }
+                    for uc in challenges
+                ],
+                "redemptions": [
+                    {
+                        "reward_code": rr.reward.code,
+                        "reward_title": rr.reward.title,
+                        "cost_points": rr.cost_points,
+                        "redeemed_at": rr.redeemed_at,
+                    }
+                    for rr in redemptions
+                ],
+            }
+        )
 
 
 class LeaderboardView(APIView):
@@ -341,17 +421,10 @@ class ChallengeListView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
-        now = timezone.now()
-
         user_challenges = (
-            UserChallenge.objects.filter(
-                user=request.user,
-                challenge__is_active=True,
-                challenge__starts_at__lte=now,
-                challenge__ends_at__gte=now,
-            )
+            UserChallenge.objects.filter(user=request.user)
             .select_related("challenge")
-            .order_by("challenge__ends_at")
+            .order_by("-completed_at", "challenge__ends_at")
         )
 
         data = []
@@ -359,18 +432,23 @@ class ChallengeListView(APIView):
         for uc in user_challenges:
             ch = uc.challenge
 
-            data.append({
-                "code": ch.code,
-                "title": ch.title,
-                "description": ch.description,
-                "goal_type": ch.goal_type,
-                "goal_target": ch.goal_target,
-                "reward_points": ch.reward_points,
-                "starts_at": ch.starts_at,
-                "ends_at": ch.ends_at,
-                "user_progress_value": uc.progress_value,
-                "user_completed_at": uc.completed_at,
-            })
+            data.append(
+                {
+                    "code": ch.code,
+                    "title": ch.title,
+                    "description": ch.description,
+                    "goal_type": ch.goal_type,
+                    "goal_target": ch.goal_target,
+                    "reward_points": ch.reward_points,
+                    "starts_at": ch.starts_at,
+                    "ends_at": ch.ends_at,
+                    "is_active": ch.is_active,
+                    "user_progress_value": uc.progress_value,
+                    "progress_value": uc.progress_value,
+                    "user_completed_at": uc.completed_at,
+                    "completed_at": uc.completed_at,
+                }
+            )
 
         return Response(data)
 
@@ -478,21 +556,33 @@ class RewardListView(APIView):
     permission_classes = [IsAuthenticatedOTP]
 
     def get(self, request):
+        ensure_default_rewards()
+
+        redeemed_reward_ids = set(
+            RewardRedemption.objects.filter(user=request.user).values_list(
+                "reward_id",
+                flat=True,
+            )
+        )
+
         rewards = Reward.objects.filter(is_active=True).order_by(
             "cost_points",
             "title",
         )
 
-        return Response([
-            {
-                "id": r.id,
-                "code": r.code,
-                "title": r.title,
-                "description": r.description,
-                "cost_points": r.cost_points,
-            }
-            for r in rewards
-        ])
+        return Response(
+            [
+                {
+                    "id": r.id,
+                    "code": r.code,
+                    "title": r.title,
+                    "description": r.description,
+                    "cost_points": r.cost_points,
+                    "redeemed": r.id in redeemed_reward_ids,
+                }
+                for r in rewards
+            ]
+        )
 
 
 class RedeemRewardView(APIView):
@@ -509,6 +599,15 @@ class RedeemRewardView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if RewardRedemption.objects.filter(
+            user=request.user,
+            reward=reward,
+        ).exists():
+            return Response(
+                {"detail": "Reward already redeemed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         stats.total_points -= reward.cost_points
         stats.save()
 
@@ -516,6 +615,15 @@ class RedeemRewardView(APIView):
             user=request.user,
             reward=reward,
             cost_points=reward.cost_points,
+        )
+
+        notify(
+            user=request.user,
+            ntype=NotificationType.REWARD_REDEEMED,
+            title="Recompensa resgatada",
+            body=f"Resgataste a recompensa: {reward.title}",
+            object_type="Reward",
+            object_id=reward.id,
         )
 
         log_action(

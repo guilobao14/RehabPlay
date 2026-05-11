@@ -170,38 +170,28 @@ const notificationsText = {
 };
 
 function normalizeType(type) {
-  const value = String(type || "").toLowerCase();
+  const value = String(type || "").toUpperCase();
 
   if (
-    value.includes("exercise") ||
-    value.includes("exercicio") ||
-    value.includes("session") ||
-    value.includes("sess")
+    value === "PLAN_ASSIGNED" ||
+    value === "PLAN_UPDATED" ||
+    value === "SESSION_SCHEDULED"
   ) {
     return "exercise";
   }
 
-  if (
-    value.includes("message") ||
-    value.includes("mensag") ||
-    value.includes("thread")
-  ) {
+  if (value === "NEW_MESSAGE") {
     return "message";
   }
 
-  if (
-    value.includes("library") ||
-    value.includes("biblioteca") ||
-    value.includes("media")
-  ) {
+  if (value === "RESOURCE_ADDED") {
     return "library";
   }
 
   if (
-    value.includes("achievement") ||
-    value.includes("badge") ||
-    value.includes("reward") ||
-    value.includes("conquista")
+    value === "BADGE_UNLOCKED" ||
+    value === "REWARD_REDEEMED" ||
+    value === "CHALLENGE_COMPLETED"
   ) {
     return "achievement";
   }
@@ -210,14 +200,27 @@ function normalizeType(type) {
 }
 
 function translateNotificationTitle(title, language) {
-  if (language !== "en") return title;
-
   const value = String(title || "").toLowerCase();
 
-  if (value.includes("nova mensagem")) return "New message";
-  if (value.includes("novo plano atribuído")) return "New plan assigned";
-  if (value.includes("plano atualizado")) return "Plan updated";
-  if (value.includes("nova sessão agendada")) return "New session scheduled";
+  if (language === "en") {
+    if (value.includes("nova mensagem")) return "New message";
+    if (value.includes("novo plano atribuído")) return "New plan assigned";
+    if (value.includes("plano atualizado")) return "Plan updated";
+    if (value.includes("nova sessão agendada")) return "New session scheduled";
+    if (value.includes("nova badge")) return "New badge unlocked";
+    if (value.includes("recompensa resgatada")) return "Reward redeemed";
+    if (value.includes("desafio concluído")) return "Challenge completed";
+  }
+
+  if (language !== "en") {
+    if (value.includes("new message")) return "Nova mensagem";
+    if (value.includes("new plan assigned")) return "Novo plano atribuído";
+    if (value.includes("plan updated")) return "Plano atualizado";
+    if (value.includes("new session scheduled")) return "Nova sessão agendada";
+    if (value.includes("new badge unlocked")) return "Nova badge desbloqueada";
+    if (value.includes("reward redeemed")) return "Recompensa resgatada";
+    if (value.includes("challenge completed")) return "Desafio concluído";
+  }
 
   return title;
 }
@@ -296,8 +299,15 @@ function getNotificationCode(type) {
   }
 }
 
-function getNotificationTarget(type) {
-  switch (type) {
+function getNotificationTarget(item) {
+  if (item.objectType === "MessageThread") return "/messages";
+  if (item.objectType === "RehabPlan") return "/patient/plan";
+  if (item.objectType === "PlanExerciseItem") return "/patient/plan";
+  if (item.objectType === "Reward") return "/patient/gamification#rewards";
+  if (item.objectType === "Badge") return "/patient/gamification#badges";
+  if (item.objectType === "Challenge") return "/patient/gamification#challenges";
+
+  switch (item.type) {
     case "exercise":
       return "/patient/plan";
     case "message":
@@ -709,11 +719,17 @@ export default function NotificationsPage() {
                                 )}
 
                                 <Link
-                                  to={getNotificationTarget(item.type)}
-                                  className="notifProActionLink"
-                                >
-                                  {text.openArea}
-                                </Link>
+  to={getNotificationTarget(item)}
+  className="notifProActionLink"
+  onClick={() => {
+    if (!item.read) {
+      handleMarkAsRead(item.id);
+    }
+    window.scrollTo(0, 0);
+  }}
+>
+  {text.openArea}
+</Link>
 
                                 <button
                                   type="button"

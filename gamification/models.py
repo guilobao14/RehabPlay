@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import models
 
 
-
 class PointReason(models.TextChoices):
     PROGRESS_LOG = "PROGRESS_LOG", "Progress log"
     MESSAGE_SENT = "MESSAGE_SENT", "Message sent"
@@ -11,9 +10,6 @@ class PointReason(models.TextChoices):
 
 
 class UserGamificationStats(models.Model):
-    """
-    Cache para não termos de somar PointLog sempre.
-    """
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     total_points = models.PositiveIntegerField(default=0)
     level = models.PositiveIntegerField(default=1)
@@ -42,6 +38,9 @@ class UserBadge(models.Model):
     class Meta:
         unique_together = [("user", "badge")]
 
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.code}"
+
 
 class BadgeRuleType(models.TextChoices):
     PROGRESS_COUNT = "PROGRESS_COUNT", "Progress count"
@@ -51,10 +50,11 @@ class BadgeRuleType(models.TextChoices):
 
 
 class BadgeRule(models.Model):
-    """
-    Permite definires badges por regras no admin, sem hardcode.
-    """
-    badge = models.OneToOneField(Badge, on_delete=models.CASCADE, related_name="rule")
+    badge = models.OneToOneField(
+        Badge,
+        on_delete=models.CASCADE,
+        related_name="rule",
+    )
     rule_type = models.CharField(max_length=32, choices=BadgeRuleType.choices)
     threshold = models.PositiveIntegerField()
 
@@ -82,9 +82,14 @@ class Challenge(models.Model):
     challenge_type = models.CharField(
         max_length=16,
         choices=ChallengeType.choices,
-        default=ChallengeType.CUSTOM
+        default=ChallengeType.CUSTOM,
     )
-    goal_type = models.CharField(max_length=32, choices=ChallengeGoalType.choices)
+
+    goal_type = models.CharField(
+        max_length=32,
+        choices=ChallengeGoalType.choices,
+    )
+
     goal_target = models.PositiveIntegerField()
 
     starts_at = models.DateTimeField()
@@ -98,18 +103,19 @@ class Challenge(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="created_challenges"
+        related_name="created_challenges",
     )
 
     assigned_patients = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through="UserChallenge",
         related_name="assigned_challenges",
-        blank=True
+        blank=True,
     )
 
     def __str__(self):
         return f"{self.title} ({self.code})"
+
 
 class UserChallenge(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -124,11 +130,11 @@ class UserChallenge(models.Model):
     def is_completed(self):
         return self.completed_at is not None
 
+    def __str__(self):
+        return f"{self.user.username} - {self.challenge.code}"
+
 
 class Reward(models.Model):
-    """
-    Recompensas para gastar pontos.
-    """
     code = models.CharField(max_length=40, unique=True)
     title = models.CharField(max_length=120)
     description = models.CharField(max_length=200, blank=True)
@@ -145,8 +151,24 @@ class RewardRedemption(models.Model):
     redeemed_at = models.DateTimeField(auto_now_add=True)
     cost_points = models.PositiveIntegerField()
 
+    def __str__(self):
+        return f"{self.user.username} - {self.reward.code} ({self.cost_points} pts)"
+
+
 class PointLog(models.Model):
-    patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True)
+    patient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
     points = models.PositiveIntegerField()
-    reason = models.CharField(max_length=40, default="PROGRESS_LOG", db_index=True)
+    reason = models.CharField(
+        max_length=40,
+        choices=PointReason.choices,
+        default=PointReason.PROGRESS_LOG,
+        db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.patient.username} +{self.points} ({self.reason})"

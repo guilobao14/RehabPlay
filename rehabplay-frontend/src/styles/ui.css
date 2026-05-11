@@ -16067,3 +16067,477 @@ html[data-theme="dark"] .settingsPro2FAActive p {
   transform: translateY(-1px);
   background: rgba(139, 47, 70, 0.14);
 }
+
+.gamiPrimeChallengeToolbar {
+  margin: -8px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.gamiPrimeChallengeFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gamiPrimeChallengeFilters button {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 47, 70, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  color: #667085;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.gamiPrimeChallengeFilters button:hover {
+  transform: translateY(-1px);
+  background: rgba(139, 47, 70, 0.06);
+}
+
+.gamiPrimeChallengeFilters button.isActive {
+  background: rgba(139, 47, 70, 0.14);
+  color: #8b2f46;
+  border-color: rgba(139, 47, 70, 0.28);
+}
+
+[data-theme="dark"] .gamiPrimeChallengeFilters button {
+  background: rgba(15, 23, 42, 0.86);
+  color: #cbd5e1;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .gamiPrimeChallengeFilters button.isActive {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
+}
+
+.gamiPrimeReward.isRedeemed {
+  opacity: 0.72;
+  filter: grayscale(0.18);
+}
+
+.gamiPrimeReward.isRedeemed button {
+  background: rgba(102, 112, 133, 0.14);
+  color: #667085;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .gamiPrimeReward.isRedeemed button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.gamiPrimeRewardStatus {
+  margin: 14px 0 0;
+  color: #8b2f46;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+[data-theme="dark"] .gamiPrimeRewardStatus {
+  color: #f9fafb;
+}
+
+.dashPrimeMetricLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.dashPrimeMetricLink:hover {
+  transform: translateY(-3px);
+  border-color: rgba(139, 47, 70, 0.22);
+  box-shadow: 0 18px 40px rgba(16, 24, 40, 0.1);
+}
+
+.dashPrimeMetricMini small {
+  margin-top: 8px;
+  display: block;
+  color: #8b2f46;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+[data-theme="dark"] .dashPrimeMetricMini small {
+  color: #f9fafb;
+}
+
+.msgUltraLayout {
+  align-items: stretch;
+}
+
+.msgUltraChat {
+  max-height: 860px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.msgUltraChatBody {
+  flex: 1;
+  min-height: 500px;
+  max-height: 660px;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+.msgUltraComposer {
+  flex-shrink: 0;
+}
+
+.msgUltraComposerBox textarea {
+  min-height: 80px;
+  max-height: 120px;
+  resize: vertical;
+}
+
+.msgUltraComposerBox {
+  padding: 18px 20px;
+}
+
+.msgUltraComposerFooter {
+  margin-top: 10px;
+}
+
+.notifProItem {
+  transition: 0.18s ease;
+}
+
+.notifProItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 45px rgba(16, 24, 40, 0.09);
+}
+
+.notifProActionLink {
+  text-decoration: none;
+}
+
+.notifProNewBadge {
+  animation: notifPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes notifPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.profileProActionButton {
+  width: 100%;
+  border: 1px solid rgba(128, 54, 72, 0.22);
+  background: #fff;
+  color: #803648;
+  border-radius: 28px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: left;
+  transition: 0.2s ease;
+}
+
+.profileProActionButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 35px rgba(60, 35, 45, 0.08);
+  border-color: rgba(128, 54, 72, 0.38);
+}
+
+.profileProActionButton strong {
+  margin-left: auto;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.profileProActionButton .profileProActionIcon {
+  flex: 0 0 auto;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.profileProActionLink,
+.profileProActionButton {
+  height: 96px;
+  min-height: 96px;
+  max-height: 96px;
+  box-sizing: border-box;
+}
+
+.profileProActionButton {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.profileProActionButton span,
+.profileProActionButton strong {
+  line-height: 1;
+}
+
+.settingsProActionList button,
+.settingsProActionList a {
+  min-height: 58px;
+  border-radius: 18px;
+  font-weight: 800;
+}
+
+.settingsPasswordForm {
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid rgba(128, 54, 72, 0.16);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.settingsPasswordForm input {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.settingsPasswordForm .settingsProPrimaryBtn {
+  margin-top: 18px;
+}
+
+.settingsPasswordError {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(128, 54, 72, 0.1);
+  color: #803648;
+  font-weight: 800;
+}
+
+.planPremiumRing {
+  width: 210px;
+  height: 210px;
+  margin: 48px auto 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    #9a4658 0 var(--progress, 0%),
+    rgba(128, 54, 72, 0.14) var(--progress, 0%) 100%
+  );
+  display: grid;
+  place-items: center;
+  box-shadow: 0 22px 45px rgba(128, 54, 72, 0.12);
+}
+
+.planPremiumRing::before {
+  content: "";
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+}
+
+.planPremiumRing > div {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.theraPlanPrimePlanActions {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.theraPlanPrimePlanActions span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  color: #803648;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.theraPlanPrimePlanActions span:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+.familyHeroCard,
+.familyCard {
+  border: 1px solid rgba(128, 54, 72, 0.14);
+  box-shadow: 0 20px 45px rgba(58, 38, 46, 0.08);
+}
+
+.familyHeroCard {
+  border-radius: 30px;
+  background: linear-gradient(135deg, #fff, #fff6f8);
+}
+
+.familyHeroValue {
+  color: #803648;
+  font-size: 2.4rem;
+  font-weight: 900;
+}
+
+.familySmallTag {
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(128, 54, 72, 0.08);
+  color: #803648;
+  font-weight: 900;
+}
+
+.familyStatus-approved {
+  background: rgba(46, 125, 86, 0.12);
+  color: #2e7d56;
+}
+
+.familyStatus-pending {
+  background: rgba(196, 128, 44, 0.14);
+  color: #9b641d;
+}
+
+.familyStatus-rejected {
+  background: rgba(160, 55, 55, 0.12);
+  color: #9a3434;
+}
+
+.familyInfoItem {
+  border-radius: 18px;
+  background: rgba(128, 54, 72, 0.045);
+}
+
+.familyGhostLinkBtn,
+.familyDangerLinkBtn {
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.familyGhostLinkBtn {
+  background: #803648;
+  color: #fff;
+}
+
+.familyGhostLinkBtn:hover,
+.familyDangerLinkBtn:hover {
+  transform: translateY(-2px);
+}
+
+.familyDangerLinkBtn {
+  background: rgba(160, 55, 55, 0.1);
+  color: #9a3434;
+  border: 1px solid rgba(160, 55, 55, 0.18);
+}
+
+.familyLinksGridReal .familyCard {
+  padding: 34px;
+  border-radius: 30px;
+}
+
+.familyLinksGridReal .familyCardHeader {
+  margin-bottom: 24px;
+}
+
+.familyInfoList {
+  display: grid;
+  gap: 12px;
+}
+
+.familyInfoItem {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(128, 54, 72, 0.045);
+}
+
+.familyInfoItem span {
+  font-size: 0.95rem;
+  color: #6f778a;
+  font-weight: 800;
+}
+
+.familyInfoItem strong {
+  color: #111827;
+  font-weight: 900;
+}
+
+.familyLinkActions {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.familyLinkActions .familyGhostLinkBtn,
+.familyLinkActions .familyDangerLinkBtn {
+  width: 100%;
+  min-height: 56px;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.familyLinkActions .familyGhostLinkBtn::before {
+  content: "↗";
+  margin-right: 10px;
+}
+
+.familyLinkActions .familyDangerLinkBtn::before {
+  content: "🗑";
+  margin-right: 10px;
+}
+
+.familyLinksGridReal .familyCard {
+  max-width: 860px;
+  padding: 26px 30px;
+  border-radius: 28px;
+}
+
+.familyLinksGridReal .familyCardHeader {
+  margin-bottom: 18px;
+}
+
+.familyLinksGridReal .familyCardTitle {
+  font-size: 1.45rem;
+}
+
+.familyLinksGridReal .familySmallTag {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 0.95rem;
+}
+
+.familyInfoList {
+  gap: 10px;
+}
+
+.familyInfoItem {
+  min-height: 54px;
+  padding: 12px 18px;
+  border-radius: 16px;
+}
+
+.familyInfoItem span,
+.familyInfoItem strong {
+  font-size: 0.98rem;
+}
+
+.familyLinkActions {
+  margin-top: 18px;
+  gap: 10px;
+}
+
+.familyLinkActions .familyGhostLinkBtn,
+.familyLinkActions .familyDangerLinkBtn {
+  min-height: 52px;
+  font-size: 1rem;
+}
