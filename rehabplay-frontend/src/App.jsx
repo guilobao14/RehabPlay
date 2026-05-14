@@ -1,8 +1,7 @@
-import { BrowserRouter, Routes, Route, NavLink, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { useAppPreferences } from "./context/AppPreferencesContext";
 import { fetchMyProfile, logout } from "./api/auth";
 import { useEffect, useState, useRef } from "react";
-
 
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -12,7 +11,6 @@ import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
-import TestApi from "./pages/TestApi";
 
 import MyPlanPage from "./pages/patient/MyPlanPage";
 import ProgressPage from "./pages/patient/ProgressPage";
@@ -32,7 +30,8 @@ import FamilyProgressPage from "./pages/family/FamilyProgressPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import PageNavigationArrows from "./components/PageNavigationArrows";
-
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
 
 function GlobalTopbar() {
   const navigate = useNavigate();
@@ -86,10 +85,10 @@ function GlobalTopbar() {
   return (
     <div className="globalAppTopbar">
       <div className="globalTopbarLeft">
-  <PageNavigationArrows />
-  <div className="globalTopbarDivider" />
-  <span className="globalTopbarBrand">RehabPlay</span>
-</div>
+        <PageNavigationArrows />
+        <div className="globalTopbarDivider" />
+        <span className="globalTopbarBrand">RehabPlay</span>
+      </div>
 
       <div className="globalTopbarUserZone">
         <div className="globalTopbarUserWrap" ref={menuRef}>
@@ -125,89 +124,18 @@ function GlobalTopbar() {
         </div>
 
         <button
-  type="button"
-  className="globalTopbarAvatar"
-  onClick={() => navigate("/profile")}
-  title={viewProfile}
->
-  {profile?.photo_url ? (
-    <img src={profile.photo_url} alt="Foto de perfil" />
-  ) : (
-    <strong>{firstName?.[0]?.toUpperCase() || "U"}</strong>
-  )}
-</button>
+          type="button"
+          className="globalTopbarAvatar"
+          onClick={() => navigate("/profile")}
+          title={viewProfile}
+        >
+          {profile?.photo_url ? (
+            <img src={profile.photo_url} alt="Foto de perfil" />
+          ) : (
+            <strong>{firstName?.[0]?.toUpperCase() || "U"}</strong>
+          )}
+        </button>
       </div>
-    </div>
-  );
-}
-
-
-function Nav() {
-  const { t } = useAppPreferences();
-
-  const linkStyle = ({ isActive }) => ({
-    marginRight: 12,
-    textDecoration: "none",
-    color: isActive ? "white" : "#aab",
-    fontWeight: isActive ? 700 : 500,
-  });
-
-  return (
-    <div
-      style={{
-        padding: 12,
-        borderBottom: "1px solid #333",
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 6,
-        background: "#0f1115",
-      }}
-    >
-      <NavLink style={linkStyle} to="/">
-        {t("home")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/login">
-        {t("login")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/dashboard">
-        {t("dashboard")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/messages">
-        {t("messages")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/notifications">
-        {t("notifications")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/profile">
-        {t("profile")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/settings">
-        {t("settings")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/test">
-        {t("testApi")}
-      </NavLink>
-
-      <span style={{ margin: "0 6px", opacity: 0.4, color: "#aab" }}>|</span>
-
-      <NavLink style={linkStyle} to="/patient/plan">
-        {t("patient")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/therapist/plans">
-        {t("therapist")}
-      </NavLink>
-
-      <NavLink style={linkStyle} to="/family">
-        {t("family")}
-      </NavLink>
     </div>
   );
 }
@@ -215,7 +143,6 @@ function Nav() {
 function PageShell({ children }) {
   return (
     <div style={{ minHeight: "100vh", background: "transparent", color: "white" }}>
-      <Nav />
       <GlobalTopbar />
       <div style={{ width: "100%", margin: 0, padding: 0 }}>{children}</div>
     </div>
@@ -226,38 +153,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Públicas */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
+        {/* Comum a todos os utilizadores autenticados */}
         <Route element={<ProtectedRoute />}>
-          <Route
-            path="/dashboard"
-            element={
-              <PageShell>
-                <DashboardPage />
-              </PageShell>
-            }
-          />
-
-          <Route
-            path="/messages"
-            element={
-              <PageShell>
-                <MessagesPage />
-              </PageShell>
-            }
-          />
-
-          <Route
-            path="/notifications"
-            element={
-              <PageShell>
-                <NotificationsPage />
-              </PageShell>
-            }
-          />
-
           <Route
             path="/profile"
             element={
@@ -275,18 +179,40 @@ export default function App() {
               </PageShell>
             }
           />
+        </Route>
 
+        {/* Paciente + Terapeuta */}
+        <Route element={<RoleRoute allow={["PATIENT", "THERAPIST"]} />}>
           <Route
-            path="/test"
+            path="/messages"
             element={
               <PageShell>
-                <TestApi />
+                <MessagesPage />
+              </PageShell>
+            }
+          />
+
+          <Route
+            path="/notifications"
+            element={
+              <PageShell>
+                <NotificationsPage />
               </PageShell>
             }
           />
         </Route>
 
+        {/* Paciente */}
         <Route element={<RoleRoute allow={["PATIENT"]} />}>
+          <Route
+            path="/dashboard"
+            element={
+              <PageShell>
+                <DashboardPage />
+              </PageShell>
+            }
+          />
+
           <Route
             path="/patient/plan"
             element={
@@ -324,7 +250,17 @@ export default function App() {
           />
         </Route>
 
+        {/* Terapeuta */}
         <Route element={<RoleRoute allow={["THERAPIST"]} />}>
+          <Route
+            path="/therapist/plans"
+            element={
+              <PageShell>
+                <PlanManagementPage />
+              </PageShell>
+            }
+          />
+
           <Route
             path="/therapist/exercises"
             element={
@@ -339,15 +275,6 @@ export default function App() {
             element={
               <PageShell>
                 <MediaCrudPage />
-              </PageShell>
-            }
-          />
-
-          <Route
-            path="/therapist/plans"
-            element={
-              <PageShell>
-                <PlanManagementPage />
               </PageShell>
             }
           />
@@ -371,6 +298,7 @@ export default function App() {
           />
         </Route>
 
+        {/* Familiar */}
         <Route element={<RoleRoute allow={["FAMILY"]} />}>
           <Route
             path="/family"

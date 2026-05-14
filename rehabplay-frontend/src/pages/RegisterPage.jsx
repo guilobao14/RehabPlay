@@ -11,6 +11,7 @@ export default function RegisterPage() {
     role: "PATIENT",
     display_name: "",
     phone: "",
+    accepted_terms: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -18,22 +19,39 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState("");
 
   function handleChange(event) {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
+
     setForm((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!form.accepted_terms) {
+      setError("Tens de aceitar a Política de Privacidade e os Termos.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      await registerUser(form);
+      const payload = {
+        username: form.username,
+        password: form.password,
+        role: form.role,
+        display_name: form.display_name,
+        phone: form.phone,
+      };
+
+      await registerUser(payload);
+
       setSuccess("Conta criada com sucesso. Agora podes iniciar sessão.");
+
       setTimeout(() => {
         navigate("/login");
       }, 1200);
@@ -104,6 +122,28 @@ export default function RegisterPage() {
               value={form.phone}
               onChange={handleChange}
             />
+
+            <label className="legalConsentBox">
+              <input
+                type="checkbox"
+                name="accepted_terms"
+                checked={form.accepted_terms}
+                onChange={handleChange}
+                required
+              />
+
+              <span>
+                Li e aceito a{" "}
+                <Link to="/privacy-policy" target="_blank">
+                  Política de Privacidade
+                </Link>{" "}
+                e os{" "}
+                <Link to="/terms" target="_blank">
+                  Termos e Condições
+                </Link>
+                .
+              </span>
+            </label>
 
             <button className="btnPrimary" type="submit" disabled={loading}>
               {loading ? "A criar..." : "Criar conta"}

@@ -365,24 +365,43 @@ export default function ExerciseCrudPage() {
   }
 
   async function handleDelete(exerciseId) {
-    const ok = window.confirm(text.confirmDelete);
-    if (!ok) return;
+  setError("");
+  setSuccess("");
 
-    setError("");
-    setSuccess("");
+  try {
+    await deleteExercise(exerciseId);
 
-    try {
-      await deleteExercise(exerciseId);
+    setExercises((prev) => prev.filter((item) => item.id !== exerciseId));
 
-      setExercises((prev) => prev.filter((item) => item.id !== exerciseId));
+    if (editingId === exerciseId) resetForm();
 
-      if (editingId === exerciseId) resetForm();
+    setSuccess(text.deleteSuccess);
 
-      setSuccess(text.deleteSuccess);
-    } catch (err) {
-      setError(err.message || text.deleteError);
-    }
-  }
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  } catch (err) {
+  const backendMessage = err.message || "";
+
+  const protectedDeleteError =
+    backendMessage.includes("já está associado") ||
+    backendMessage.includes("associated with existing plans");
+
+  setError(
+    protectedDeleteError
+      ? language === "en"
+        ? "This exercise cannot be removed because it is already associated with existing plans."
+        : "Não é possível remover este exercício porque já está associado a planos existentes."
+      : backendMessage || text.deleteError
+  );
+
+  setTimeout(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth",
+    });
+  }, 80);
+}
+}
 
   return (
     <div className="appPage">

@@ -189,6 +189,12 @@ export default function FamilyProgressPage() {
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [error, setError] = useState("");
 
+  function goToTop() {
+  setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, 100);
+}
+
   useEffect(() => {
     async function loadLinks() {
       try {
@@ -556,13 +562,13 @@ export default function FamilyProgressPage() {
               </div>
 
               <div className="familyQuickActions" style={{ marginTop: 18 }}>
-                <Link to="/family" className="familyGhostLinkBtn">
-                  {text.backDashboard}
-                </Link>
+                <Link to="/family" className="familyGhostLinkBtn" onClick={goToTop}>
+  {text.backDashboard}
+</Link>
 
-                <Link to="/family/links" className="familyGhostLinkBtn">
-                  {text.viewLinks}
-                </Link>
+<Link to="/family/links" className="familyGhostLinkBtn" onClick={goToTop}>
+  {text.viewLinks}
+</Link>
               </div>
             </div>
 

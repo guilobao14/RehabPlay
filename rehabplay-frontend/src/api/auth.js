@@ -66,3 +66,9 @@ export async function changePassword(body) {
     body,
   });
 }
+
+export async function deleteMyAccount() {
+  return apiFetch("/api/auth/me/", {
+    method: "DELETE",
+  });
+}

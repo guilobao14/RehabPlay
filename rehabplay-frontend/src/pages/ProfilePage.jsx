@@ -194,6 +194,12 @@ function getRoleDescription(role, text) {
   return text.defaultDescription;
 }
 
+function getHomePathByRole(role) {
+  if (role === "THERAPIST") return "/therapist/plans";
+  if (role === "FAMILY") return "/family";
+  return "/dashboard";
+}
+
 function getProfileCompleteness(profile) {
   const fields = [
     profile?.display_name,
@@ -245,20 +251,20 @@ export default function ProfilePage() {
   }
 
   function handleUpdateInfo() {
-  setIsEditing(true);
-  setSaveMessage("");
+    setIsEditing(true);
+    setSaveMessage("");
 
-  setTimeout(() => {
-    const editCard = document.querySelector(".profileProEditCard");
+    setTimeout(() => {
+      const editCard = document.querySelector(".profileProEditCard");
 
-    if (editCard) {
-      editCard.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, 80);
-}
+      if (editCard) {
+        editCard.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 80);
+  }
 
   useEffect(() => {
     async function loadProfile() {
@@ -294,6 +300,7 @@ export default function ProfilePage() {
 
   const displayName = profile?.display_name || text.userFallback;
   const firstName = String(displayName).split(" ")[0] || text.userFallback;
+  const homePath = getHomePathByRole(profile?.role);
 
   const initials = useMemo(() => getInitials(displayName), [displayName]);
 
@@ -383,7 +390,7 @@ export default function ProfilePage() {
     <div className="appPage">
       <div className="appShellMockup">
         <div className="topbar">
-          <Link to="/dashboard" className="brandLink" onClick={goToPageTop}>
+          <Link to={homePath} className="brandLink" onClick={goToPageTop}>
             RehabPlay
           </Link>
 
@@ -697,7 +704,7 @@ export default function ProfilePage() {
                     </Link>
 
                     <Link
-                      to="/dashboard"
+                      to={homePath}
                       className="profileProActionLink"
                       onClick={goToPageTop}
                     >

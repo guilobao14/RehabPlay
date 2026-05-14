@@ -419,25 +419,29 @@ const payload = {
   }
 
   async function handleDelete(id) {
-    const ok = window.confirm(text.confirmDelete);
-    if (!ok) return;
+  setError("");
+  setSuccess("");
 
-    setError("");
-    setSuccess("");
+  try {
+    await deleteMediaResource(id);
 
-    try {
-      await deleteMediaResource(id);
+    setResources((prev) => prev.filter((item) => item.id !== id));
 
-      setResources((prev) => prev.filter((item) => item.id !== id));
+    if (editingId === id) resetForm();
 
-      if (editingId === id) resetForm();
+    setSuccess(text.deleteSuccess);
 
-      setSuccess(text.deleteSuccess);
-    } catch (err) {
-      setError(err.message || text.deleteError);
-    }
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 80);
+  } catch (err) {
+    setError(err.message || text.deleteError);
+
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 80);
   }
-
+}
   const videoCount = resources.filter((item) => item.type === "VIDEO").length;
   const textCount = resources.filter((item) => item.type === "TEXT").length;
 

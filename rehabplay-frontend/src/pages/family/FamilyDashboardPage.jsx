@@ -237,6 +237,12 @@ export default function FamilyDashboardPage() {
     activeLink?.can_view_progress === true ||
     activeLink?.can_view_progress === undefined;
 
+
+function goToTop() {
+  setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, 80);
+}
   return (
     <div className="appPage">
       <div className="appShellMockup">
@@ -397,13 +403,13 @@ export default function FamilyDashboardPage() {
               </section>
 
               <section className="familyDashActions">
-                <Link to="/family/links" className="familyDashActionCard">
+                <Link to="/family/links" className="familyDashActionCard" onClick={goToTop}>
                   <div>🔗</div>
                   <h3>{text.manageLinks}</h3>
                   <p>{text.manageLinksText}</p>
                 </Link>
 
-                <Link to="/family/progress" className="familyDashActionCard">
+                <Link to="/family/progress" className="familyDashActionCard" onClick={goToTop}>
                   <div>📈</div>
                   <h3>{text.viewProgress}</h3>
                   <p>{text.viewProgressText}</p>

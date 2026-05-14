@@ -10,6 +10,7 @@ import {
   verify2FA,
   fetchMe,
   changePassword,
+  deleteMyAccount,
 } from "../api/auth";
 
 const text = {
@@ -67,7 +68,6 @@ const text = {
     noData: "Sem dados",
     noDataText: "Não foi possível encontrar as definições da conta.",
     hello: "Olá",
-    changePasswordTitle: "Alterar palavra-passe",
     changePasswordText: "Atualiza a palavra-passe usada para iniciar sessão.",
     currentPassword: "Palavra-passe atual",
     newPassword: "Nova palavra-passe",
@@ -75,6 +75,14 @@ const text = {
     savePassword: "Guardar palavra-passe",
     passwordChanged: "Palavra-passe alterada com sucesso.",
     passwordError: "Erro ao alterar palavra-passe.",
+    deleteAccount: "Eliminar conta",
+    deleteAccountText:
+      "Remove permanentemente a tua conta e os dados associados à plataforma.",
+    deleteAccountConfirm:
+      "Tens a certeza que pretendes eliminar a tua conta? Esta ação é permanente.",
+    deletingAccount: "A eliminar...",
+    deleteAccountError: "Erro ao eliminar conta.",
+    cancel: "Cancelar",
   },
   en: {
     title: "Settings",
@@ -130,7 +138,6 @@ const text = {
     noData: "No data",
     noDataText: "Could not find account settings.",
     hello: "Hi",
-    changePasswordTitle: "Change password",
     changePasswordText: "Update the password used to sign in.",
     currentPassword: "Current password",
     newPassword: "New password",
@@ -138,6 +145,14 @@ const text = {
     savePassword: "Save password",
     passwordChanged: "Password changed successfully.",
     passwordError: "Error changing password.",
+    deleteAccount: "Delete account",
+    deleteAccountText:
+      "Permanently removes your account and associated platform data.",
+    deleteAccountConfirm:
+      "Are you sure you want to delete your account? This action is permanent.",
+    deletingAccount: "Deleting...",
+    deleteAccountError: "Error deleting account.",
+    cancel: "Cancel",
   },
 };
 
@@ -154,6 +169,8 @@ export default function SettingsPage() {
   const { setTheme, setLanguage } = useAppPreferences();
 
   const [settings, setSettings] = useState(null);
+  const [userRole, setUserRole] = useState("");
+
   const [form, setForm] = useState({
     reminder_opt_in: false,
     theme: localStorage.getItem("rehabplay_theme") || "light",
@@ -163,18 +180,21 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [otpSetupData, setOtpSetupData] = useState(null);
   const [otpToken, setOtpToken] = useState("");
   const [otpEnabled, setOtpEnabled] = useState(false);
+
   const [passwordError, setPasswordError] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
-  current_password: "",
-  new_password: "",
-  confirm_password: "",
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
   });
 
   const [error, setError] = useState("");
@@ -185,7 +205,7 @@ export default function SettingsPage() {
   useEffect(() => {
     applyTheme(form.theme, setTheme);
     applyLanguage(form.language, setLanguage);
-  }, [form.theme, form.language]);
+  }, [form.theme, form.language, setTheme, setLanguage]);
 
   useEffect(() => {
     async function loadPage() {
@@ -209,9 +229,11 @@ export default function SettingsPage() {
 
         setSettings(settingsData);
         setForm(nextForm);
+        setUserRole(meData?.role || "");
+        setOtpEnabled(!!meData?.two_factor_enabled);
+
         applyTheme(nextForm.theme, setTheme);
         applyLanguage(nextForm.language, setLanguage);
-        setOtpEnabled(!!meData?.two_factor_enabled);
       } catch (err) {
         setError(err.message || t.errorLoad);
       } finally {
@@ -221,6 +243,22 @@ export default function SettingsPage() {
 
     loadPage();
   }, []);
+
+  function getDashboardPath() {
+    if (userRole === "THERAPIST") return "/therapist/plans";
+    if (userRole === "FAMILY") return "/family";
+    return "/dashboard";
+  }
+
+  function goToTop() {
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
+    }, 80);
+  }
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
@@ -321,52 +359,71 @@ export default function SettingsPage() {
     }
   }
 
-
   function handlePasswordChange(event) {
-  const { name, value } = event.target;
-  setPasswordError("");
+    const { name, value } = event.target;
+    setPasswordError("");
 
-  setPasswordForm((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
+    setPasswordForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
-  setSuccess("");
-}
+    setSuccess("");
+  }
 
-async function handlePasswordSubmit(event) {
-  event.preventDefault();
-  setPasswordError("");
-  setPasswordSaving(true);
-  setError("");
-  setSuccess("");
+  async function handlePasswordSubmit(event) {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordSaving(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    await changePassword(passwordForm);
+    try {
+      await changePassword(passwordForm);
 
-    setPasswordForm({
-      current_password: "",
-      new_password: "",
-      confirm_password: "",
-    });
+      setPasswordForm({
+        current_password: "",
+        new_password: "",
+        confirm_password: "",
+      });
 
-    setShowPasswordForm(false);
-    setSuccess(t.passwordChanged);
-  } catch (err) {
-  setPasswordError(err.message || t.passwordError);
-} finally {
-  setPasswordSaving(false);
-}
-}
+      setShowPasswordForm(false);
+      setSuccess(t.passwordChanged);
+    } catch (err) {
+      setPasswordError(err.message || t.passwordError);
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
 
+  async function handleDeleteAccount() {
+    setDeletingAccount(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      await deleteMyAccount();
+
+      localStorage.removeItem("rehabplay_user");
+      localStorage.removeItem("rehabplay_theme");
+      localStorage.removeItem("rehabplay_language");
+
+      navigate("/login");
+    } catch (err) {
+      setError(err.message || t.deleteAccountError);
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
 
   return (
     <div className="appPage">
       <div className="appShellMockup">
         <div className="topbar">
-          <Link to="/dashboard" className="brandLink">
+          <Link to={getDashboardPath()} className="brandLink" onClick={goToTop}>
             RehabPlay
           </Link>
+
           <div className="userArea">{t.hello}, Guilherme</div>
         </div>
 
@@ -379,7 +436,9 @@ async function handlePasswordSubmit(event) {
           )}
 
           {error && !loading && <div className="settingsProError">{error}</div>}
-          {success && !loading && <div className="settingsProSuccess">{success}</div>}
+          {success && !loading && (
+            <div className="settingsProSuccess">{success}</div>
+          )}
 
           {!loading && !error && settings && (
             <>
@@ -411,10 +470,12 @@ async function handlePasswordSubmit(event) {
                       <span>{t.reminders}</span>
                       <strong>{form.reminder_opt_in ? t.active : t.inactive}</strong>
                     </div>
+
                     <div className="settingsProInfoItem">
                       <span>{t.theme}</span>
                       <strong>{form.theme === "dark" ? t.dark : t.light}</strong>
                     </div>
+
                     <div className="settingsProInfoItem">
                       <span>{t.language}</span>
                       <strong>
@@ -435,10 +496,12 @@ async function handlePasswordSubmit(event) {
                       <span>{t.autoChanges}</span>
                       <strong>{t.active}</strong>
                     </div>
+
                     <div className="settingsProInfoItem">
                       <span>{t.accountState}</span>
                       <strong>{t.available}</strong>
                     </div>
+
                     <div className="settingsProInfoItem">
                       <span>{t.twoFA}</span>
                       <strong>{otpEnabled ? t.active : t.inactive}</strong>
@@ -447,7 +510,10 @@ async function handlePasswordSubmit(event) {
                 </div>
               </section>
 
-              <form className="settingsProCard settingsProPreferences" onSubmit={handleSave}>
+              <form
+                className="settingsProCard settingsProPreferences"
+                onSubmit={handleSave}
+              >
                 <div className="settingsProCardHeader">
                   <h2>{t.preferences}</h2>
                   <span>{t.account}</span>
@@ -552,7 +618,10 @@ async function handlePasswordSubmit(event) {
                             required
                           />
 
-                          <button className="settingsProPrimaryBtn" disabled={otpLoading}>
+                          <button
+                            className="settingsProPrimaryBtn"
+                            disabled={otpLoading}
+                          >
                             {otpLoading ? t.confirming : t.confirmCode}
                           </button>
                         </form>
@@ -570,59 +639,73 @@ async function handlePasswordSubmit(event) {
                   </div>
 
                   <div className="settingsProActionList">
-  <button
-    type="button"
-    onClick={() => setShowPasswordForm((prev) => !prev)}
-  >
-    {t.password}
-  </button>
-</div>
-                  {showPasswordForm && (
-                    <form className="settingsPasswordForm" onSubmit={handlePasswordSubmit}>
-                     <p>{t.changePasswordText}</p>
-                     {passwordError && (
-  <div className="settingsPasswordError">
-    {passwordError}
-  </div>
-)}
-
-                     <input
-                     type="password"
-                     name="current_password"
-                     placeholder={t.currentPassword}
-                     value={passwordForm.current_password}
-                     onChange={handlePasswordChange}
-                     required
-                    />
-
-                    <input
-                    type="password"
-                    name="new_password"
-                    placeholder={t.newPassword}
-                    value={passwordForm.new_password}
-                    onChange={handlePasswordChange}
-                    required
-                    />
-
-                    <input
-                    type="password"
-                    name="confirm_password"
-                    placeholder={t.confirmPassword}
-                    value={passwordForm.confirm_password}
-                    onChange={handlePasswordChange}
-                    required
-                   />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordForm((prev) => !prev)}
+                    >
+                      {t.password}
+                    </button>
 
                     <button
-                    type="submit"
-                    className="settingsProPrimaryBtn"
-                    disabled={passwordSaving}
-                   >
-                    {passwordSaving ? t.saving : t.savePassword}
-                  </button>
-                </form>
-              )}
-              </div>
+                      type="button"
+                      className="danger"
+                      onClick={() => setShowDeleteModal(true)}
+                      disabled={deletingAccount}
+                    >
+                      {deletingAccount ? t.deletingAccount : t.deleteAccount}
+                    </button>
+
+                    <p className="settingsProMuted">{t.deleteAccountText}</p>
+                  </div>
+
+                  {showPasswordForm && (
+                    <form
+                      className="settingsPasswordForm"
+                      onSubmit={handlePasswordSubmit}
+                    >
+                      <p>{t.changePasswordText}</p>
+
+                      {passwordError && (
+                        <div className="settingsPasswordError">{passwordError}</div>
+                      )}
+
+                      <input
+                        type="password"
+                        name="current_password"
+                        placeholder={t.currentPassword}
+                        value={passwordForm.current_password}
+                        onChange={handlePasswordChange}
+                        required
+                      />
+
+                      <input
+                        type="password"
+                        name="new_password"
+                        placeholder={t.newPassword}
+                        value={passwordForm.new_password}
+                        onChange={handlePasswordChange}
+                        required
+                      />
+
+                      <input
+                        type="password"
+                        name="confirm_password"
+                        placeholder={t.confirmPassword}
+                        value={passwordForm.confirm_password}
+                        onChange={handlePasswordChange}
+                        required
+                      />
+
+                      <button
+                        type="submit"
+                        className="settingsProPrimaryBtn"
+                        disabled={passwordSaving}
+                      >
+                        {passwordSaving ? t.saving : t.savePassword}
+                      </button>
+                    </form>
+                  )}
+                </div>
 
                 <div className="settingsProCard">
                   <div className="settingsProCardHeader">
@@ -640,7 +723,9 @@ async function handlePasswordSubmit(event) {
                       {loggingOut ? t.loggingOut : t.logout}
                     </button>
 
-                    <Link to="/dashboard">{t.dashboard}</Link>
+                    <Link to={getDashboardPath()} onClick={goToTop}>
+                      {t.dashboard}
+                    </Link>
                   </div>
                 </div>
               </section>
@@ -651,6 +736,35 @@ async function handlePasswordSubmit(event) {
             <div className="settingsProStateCard">
               <h3>{t.noData}</h3>
               <p>{t.noDataText}</p>
+            </div>
+          )}
+
+          {showDeleteModal && (
+            <div className="settingsDeleteOverlay">
+              <div className="settingsDeleteModal">
+                <h2>{t.deleteAccount}</h2>
+                <p>{t.deleteAccountConfirm}</p>
+
+                <div className="settingsDeleteActions">
+                  <button
+                    type="button"
+                    className="settingsDeleteCancel"
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deletingAccount}
+                  >
+                    {t.cancel}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="settingsDeleteConfirm"
+                    onClick={handleDeleteAccount}
+                    disabled={deletingAccount}
+                  >
+                    {deletingAccount ? t.deletingAccount : t.deleteAccount}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>

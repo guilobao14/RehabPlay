@@ -4,7 +4,10 @@ from .models import MediaResource
 
 class MediaResourceSerializer(serializers.ModelSerializer):
     exercise_name = serializers.CharField(source="exercise.name", read_only=True)
+    exercise_area = serializers.CharField(source="exercise.area", read_only=True)
+    exercise_area_display = serializers.CharField(source="exercise.get_area_display", read_only=True)
 
+    
     video_url = serializers.URLField(
         required=False,
         allow_blank=True,
@@ -31,6 +34,8 @@ class MediaResourceSerializer(serializers.ModelSerializer):
             "duration_minutes",
             "created_by",
             "created_at",
+            "exercise_area",
+            "exercise_area_display",
         ]
         read_only_fields = ["id", "created_by", "created_at"]
 

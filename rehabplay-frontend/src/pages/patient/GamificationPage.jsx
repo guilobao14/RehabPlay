@@ -1080,10 +1080,17 @@ export default function GamificationPage() {
                   <h3>{text.keepGoing}</h3>
                   <p>{text.keepGoingText}</p>
 
-                  <Link to="/patient/plan">
-                    {text.seePlan}
-                    <span>→</span>
-                  </Link>
+                  <Link
+  to="/patient/plan"
+  onClick={() => {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 120);
+  }}
+>
+  {text.seePlan}
+  <span>→</span>
+</Link>
                 </div>
               </section>
             </>

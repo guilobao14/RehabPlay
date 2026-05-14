@@ -29,7 +29,7 @@ const libraryText = {
 
     filtersTitle: "Explorar biblioteca",
     filtersText:
-      "Filtra por tipo, exercício ou dificuldade para encontrares rapidamente o recurso certo.",
+      "Filtra por tipo, área ou dificuldade para encontrares rapidamente o recurso certo.",
 
     allTypes: "Todos",
     allAreas: "Todas",
@@ -95,7 +95,7 @@ const libraryText = {
 
     filtersTitle: "Explore library",
     filtersText:
-      "Filter by type, exercise or difficulty to quickly find the right resource.",
+      "Filter by type, area or difficulty to quickly find the right resource.",
 
     allTypes: "All",
     allAreas: "All",
@@ -157,6 +157,78 @@ function translateBackendText(value, language, fallback = "") {
 
   let text = String(value);
 
+  const areaToPt = {
+    HEAD: "Cabeça",
+    FACE: "Face",
+    NECK: "Pescoço",
+    SHOULDER: "Ombro",
+    ARM: "Braço",
+    UPPER_ARM: "Braço superior",
+    ELBOW: "Cotovelo",
+    FOREARM: "Antebraço",
+    WRIST: "Pulso",
+    HAND: "Mão",
+    FINGERS: "Dedos",
+    CHEST: "Peito",
+    BACK: "Costas",
+    UPPER_BACK: "Costas superiores",
+    LOWER_BACK: "Lombar",
+    CORE: "Core",
+    ABDOMEN: "Abdómen",
+    HIP: "Anca",
+    GLUTES: "Glúteos",
+    LEG: "Perna",
+    THIGH: "Coxa",
+    HAMSTRINGS: "Isquiotibiais",
+    QUADRICEPS: "Quadríceps",
+    KNEE: "Joelho",
+    CALF: "Gémeos",
+    ANKLE: "Tornozelo",
+    FOOT: "Pé",
+    TOES: "Dedos dos pés",
+    FULL_BODY: "Corpo inteiro",
+    BALANCE: "Equilíbrio",
+    MOBILITY: "Mobilidade",
+  };
+
+  const areaToEn = {
+    HEAD: "Head",
+    FACE: "Face",
+    NECK: "Neck",
+    SHOULDER: "Shoulder",
+    ARM: "Arm",
+    UPPER_ARM: "Upper arm",
+    ELBOW: "Elbow",
+    FOREARM: "Forearm",
+    WRIST: "Wrist",
+    HAND: "Hand",
+    FINGERS: "Fingers",
+    CHEST: "Chest",
+    BACK: "Back",
+    UPPER_BACK: "Upper back",
+    LOWER_BACK: "Lower back",
+    CORE: "Core",
+    ABDOMEN: "Abdomen",
+    HIP: "Hip",
+    GLUTES: "Glutes",
+    LEG: "Leg",
+    THIGH: "Thigh",
+    HAMSTRINGS: "Hamstrings",
+    QUADRICEPS: "Quadriceps",
+    KNEE: "Knee",
+    CALF: "Calf",
+    ANKLE: "Ankle",
+    FOOT: "Foot",
+    TOES: "Toes",
+    FULL_BODY: "Full body",
+    BALANCE: "Balance",
+    MOBILITY: "Mobility",
+  };
+
+  if (areaToPt[text] || areaToEn[text]) {
+    return language === "en" ? areaToEn[text] || text : areaToPt[text] || text;
+  }
+
   const ptToEn = {
     "Texto:": "Text:",
     "Vídeo:": "Video:",
@@ -166,6 +238,33 @@ function translateBackendText(value, language, fallback = "") {
       "Raise slowly up to the comfortable limit.",
     "Parar se houver dor.": "Stop if there is pain.",
     "Elevação de braço": "Arm raise",
+    "Extensão de joelho horizontal": "Horizontal knee extension",
+
+    Cabeça: "Head",
+    Face: "Face",
+    Pescoço: "Neck",
+    Ombro: "Shoulder",
+    Braço: "Arm",
+    Cotovelo: "Elbow",
+    Antebraço: "Forearm",
+    Pulso: "Wrist",
+    Mão: "Hand",
+    Dedos: "Fingers",
+    Peito: "Chest",
+    Costas: "Back",
+    Lombar: "Lower back",
+    Abdómen: "Abdomen",
+    Anca: "Hip",
+    Glúteos: "Glutes",
+    Perna: "Leg",
+    Coxa: "Thigh",
+    Joelho: "Knee",
+    Gémeos: "Calf",
+    Tornozelo: "Ankle",
+    Pé: "Foot",
+    "Corpo inteiro": "Full body",
+    Equilíbrio: "Balance",
+    Mobilidade: "Mobility",
   };
 
   const enToPt = Object.fromEntries(
@@ -181,6 +280,18 @@ function translateBackendText(value, language, fallback = "") {
   return text;
 }
 
+function getResourceArea(resource, text) {
+  return (
+    resource.exercise_area ||
+    resource.body_area ||
+    resource.area ||
+    resource.exercise_body_area ||
+    resource.exercise_area_display ||
+    resource.area_display ||
+    text.noArea
+  );
+}
+
 export default function LibraryPage() {
   const { language } = useAppPreferences();
   const text = libraryText[language] || libraryText["pt-PT"];
@@ -189,6 +300,7 @@ export default function LibraryPage() {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedResource, setSelectedResource] = useState(null);
 
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [areaFilter, setAreaFilter] = useState("ALL");
@@ -209,8 +321,8 @@ export default function LibraryPage() {
             (item) => String(item.exercise) === String(exerciseFromUrl)
           );
 
-          if (match?.exercise_name) {
-            setAreaFilter(match.exercise_name);
+          if (match) {
+            setAreaFilter(getResourceArea(match, text));
           }
         }
       } catch (err) {
@@ -221,7 +333,7 @@ export default function LibraryPage() {
     }
 
     loadResources();
-  }, [text.loadError, searchParams]);
+  }, [text.loadError, text.noArea, searchParams]);
 
   const typeOptions = useMemo(() => {
     const values = resources.map((item) => item.type).filter(Boolean);
@@ -229,9 +341,12 @@ export default function LibraryPage() {
   }, [resources]);
 
   const areaOptions = useMemo(() => {
-    const values = resources.map((item) => item.exercise_name).filter(Boolean);
+    const values = resources
+      .map((item) => getResourceArea(item, text))
+      .filter(Boolean);
+
     return ["ALL", ...new Set(values)];
-  }, [resources]);
+  }, [resources, text]);
 
   const difficultyOptions = useMemo(() => {
     const values = resources.map((item) => item.difficulty).filter(Boolean);
@@ -244,19 +359,25 @@ export default function LibraryPage() {
     return resources.filter((item) => {
       const title = String(item.title || "").toLowerCase();
       const exerciseName = String(item.exercise_name || "").toLowerCase();
+      const areaName = String(getResourceArea(item, text) || "").toLowerCase();
 
       const matchesSearch =
-        !q || title.includes(q) || exerciseName.includes(q);
+        !q ||
+        title.includes(q) ||
+        exerciseName.includes(q) ||
+        areaName.includes(q);
 
       const matchesType = typeFilter === "ALL" || item.type === typeFilter;
+
       const matchesArea =
-        areaFilter === "ALL" || item.exercise_name === areaFilter;
+        areaFilter === "ALL" || getResourceArea(item, text) === areaFilter;
+
       const matchesDifficulty =
         difficultyFilter === "ALL" || item.difficulty === difficultyFilter;
 
       return matchesSearch && matchesType && matchesArea && matchesDifficulty;
     });
-  }, [resources, search, typeFilter, areaFilter, difficultyFilter]);
+  }, [resources, search, typeFilter, areaFilter, difficultyFilter, text]);
 
   const totalResources = resources.length;
 
@@ -264,13 +385,14 @@ export default function LibraryPage() {
     if (!resources.length) return "-";
 
     const count = {};
+
     for (const item of resources) {
-      const key = item.exercise_name || text.noArea;
+      const key = getResourceArea(item, text);
       count[key] = (count[key] || 0) + 1;
     }
 
     return Object.entries(count).sort((a, b) => b[1] - a[1])[0][0];
-  }, [resources, text.noArea]);
+  }, [resources, text]);
 
   const recommendedLevel = useMemo(() => {
     if (!resources.length) return "-";
@@ -477,11 +599,20 @@ export default function LibraryPage() {
                           </div>
 
                           <div className="libraryPrimeResourceTags">
-                            <span>{formatType(resource.type, text)}</span>
-                            <span>
-                              {formatDifficulty(resource.difficulty, text)}
-                            </span>
-                          </div>
+  <span>{formatType(resource.type, text)}</span>
+
+  <span>
+    {translateBackendText(
+      getResourceArea(resource, text),
+      language,
+      getResourceArea(resource, text)
+    )}
+  </span>
+
+  <span>
+    {formatDifficulty(resource.difficulty, text)}
+  </span>
+</div>
                         </div>
 
                         <h3>{title}</h3>
@@ -519,7 +650,10 @@ export default function LibraryPage() {
                               <span>→</span>
                             </a>
                           ) : (
-                            <button type="button">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedResource(resource)}
+                            >
                               {text.openResource}
                               <span>→</span>
                             </button>
@@ -549,6 +683,51 @@ export default function LibraryPage() {
                 </div>
               </section>
             </>
+          )}
+
+          {selectedResource && (
+            <div className="libraryResourceModalOverlay">
+              <div className="libraryResourceModal">
+                <button
+                  type="button"
+                  className="libraryResourceModalClose"
+                  onClick={() => setSelectedResource(null)}
+                >
+                  ×
+                </button>
+
+                <span className="libraryResourceModalTag">
+                  {formatType(selectedResource.type, text)}
+                </span>
+
+                <h2>
+                  {translateBackendText(
+                    selectedResource.title,
+                    language,
+                    text.untitled
+                  )}
+                </h2>
+
+                <div className="libraryResourceModalInfo">
+                  <span>{text.exercise}</span>
+                  <strong>
+                    {translateBackendText(
+                      selectedResource.exercise_name,
+                      language,
+                      "-"
+                    )}
+                  </strong>
+                </div>
+
+                <p>
+                  {translateBackendText(
+                    selectedResource.description,
+                    language,
+                    ""
+                  ) || text.noResultsText}
+                </p>
+              </div>
+            </div>
           )}
         </main>
       </div>

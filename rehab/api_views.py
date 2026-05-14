@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
+from django.db.models import ProtectedError
 
 from accounts.permissions import IsPatient
 from .models import RehabPlan, ProgressEntry
@@ -386,14 +387,16 @@ class ExerciseDetailView(APIView):
     def patch(self, request, exercise_id: int):
         # só terapeuta edita
         if not IsTherapist().has_permission(request, self):
-            return Response({"detail": "Only therapists can update exercises."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Only therapists can update exercises."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         obj = get_object_or_404(Exercise, id=exercise_id)
         ser = ExerciseSerializer(obj, data=request.data, partial=True)
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        # AUDIT
         log_action(
             user=request.user,
             action=AuditAction.EXERCISE_UPDATED,
@@ -408,22 +411,33 @@ class ExerciseDetailView(APIView):
     def delete(self, request, exercise_id: int):
         # só terapeuta remove
         if not IsTherapist().has_permission(request, self):
-            return Response({"detail": "Only therapists can delete exercises."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "Only therapists can delete exercises."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         obj = get_object_or_404(Exercise, id=exercise_id)
 
-        # AUDIT (antes de apagar)
-        log_action(
-            user=request.user,
-            action=AuditAction.EXERCISE_DELETED,
-            request=request,
-            object_type="Exercise",
-            object_id=obj.id,
-            extra={"area": obj.area, "name": obj.name},
-        )
+        try:
+            log_action(
+                user=request.user,
+                action=AuditAction.EXERCISE_DELETED,
+                request=request,
+                object_type="Exercise",
+                object_id=obj.id,
+                extra={"area": obj.area, "name": obj.name},
+            )
 
-        obj.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except ProtectedError:
+            return Response(
+                {
+                    "detail": "Não é possível remover este exercício porque já está associado a planos existentes."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
    
 class TherapistPatientProgressView(APIView):

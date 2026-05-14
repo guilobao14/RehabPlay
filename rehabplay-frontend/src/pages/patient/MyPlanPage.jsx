@@ -525,10 +525,19 @@ const pendingCount = Math.max(items.length - completedCount, 0);
                     </div>
                   </div>
 
-                  <Link to="/patient/progress">
-                    {text.registerExercise}
-                    <span>→</span>
-                  </Link>
+                  <Link
+  to="/patient/progress#register-exercise"
+  onClick={() => {
+    setTimeout(() => {
+      document
+        .getElementById("register-exercise")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }}
+>
+  {text.registerExercise}
+  <span>→</span>
+</Link>
                 </div>
 
                 <div className="planPremiumClinical">

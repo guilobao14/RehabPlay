@@ -16541,3 +16541,1063 @@ html {
   min-height: 52px;
   font-size: 1rem;
 }
+
+.legalConsentBox {
+  margin: 20px 0;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(128, 54, 72, 0.06);
+  border: 1px solid rgba(128, 54, 72, 0.14);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: #4b5563;
+  font-weight: 700;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.legalConsentBox input {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  accent-color: #803648;
+  flex-shrink: 0;
+}
+
+.legalConsentBox a {
+  color: #803648;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
+.legalPage {
+  padding: 48px;
+}
+
+.legalHero {
+  padding: 48px;
+  border-radius: 34px;
+  background: linear-gradient(135deg, #fff, #fff4f7);
+  border: 1px solid rgba(128, 54, 72, 0.12);
+  box-shadow: 0 24px 55px rgba(58, 38, 46, 0.08);
+  margin-bottom: 28px;
+}
+
+.legalHero span {
+  color: #803648;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.legalHero h1 {
+  margin: 12px 0;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  color: #111827;
+}
+
+.legalHero p {
+  max-width: 850px;
+  color: #667085;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.legalCard {
+  padding: 30px 34px;
+  margin-bottom: 18px;
+  border-radius: 26px;
+  background: #fff;
+  border: 1px solid rgba(128, 54, 72, 0.1);
+  box-shadow: 0 14px 35px rgba(58, 38, 46, 0.06);
+}
+
+.legalCard h2 {
+  margin-bottom: 12px;
+  color: #803648;
+  font-size: 1.25rem;
+}
+
+.legalCard p {
+  color: #4b5563;
+  line-height: 1.75;
+}
+
+.legalActions {
+  margin-top: 28px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.legalActions a {
+  padding: 14px 22px;
+  border-radius: 999px;
+  background: #803648;
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .legalPage {
+    padding: 24px;
+  }
+
+  .legalHero,
+  .legalCard {
+    padding: 24px;
+  }
+
+  .legalActions {
+    flex-direction: column;
+  }
+
+  .legalActions a {
+    text-align: center;
+  }
+}
+
+:root {
+  --app-bg: #f4f1f2;
+  --app-card: #ffffff;
+  --app-card-soft: #faf7f8;
+  --app-text: #111827;
+  --app-muted: #667085;
+  --app-border: rgba(128, 54, 72, 0.14);
+  --app-primary: #803648;
+  --app-primary-2: #9b4d5c;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #0f111a;
+  --app-card: #171a25;
+  --app-card-soft: #1f2330;
+  --app-text: #f8fafc;
+  --app-muted: #cbd5e1;
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-primary: #9b4d5c;
+  --app-primary-2: #b45b6a;
+}
+
+body,
+.appPage,
+.appShellMockup,
+.content,
+main {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+/* =========================================================
+   DARK MODE FINAL - RehabPlay
+   Colar no fim do ui.css
+========================================================= */
+
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  --bg: #0f111a;
+  --app-bg: #0f111a;
+  --white: #171a25;
+  --text: #f8fafc;
+  --muted: #cbd5e1;
+  --brand: #a04651;
+  --brand-dark: #8c3943;
+  --border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+
+  --app-card: #171a25;
+  --app-card-soft: #1f2330;
+  --app-text: #f8fafc;
+  --app-muted: #cbd5e1;
+  --app-primary: #a04651;
+}
+
+/* fundo geral */
+[data-theme="dark"] body,
+[data-theme="dark"] .appPage,
+[data-theme="dark"] .appShellMockup,
+[data-theme="dark"] .content,
+[data-theme="dark"] main {
+  background: #0f111a !important;
+  color: #f8fafc !important;
+}
+
+/* textos principais */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] strong,
+[data-theme="dark"] .pageTitle,
+[data-theme="dark"] .dashboardTitle,
+[data-theme="dark"] .dashPrimeTitle,
+[data-theme="dark"] .profileProTitle,
+[data-theme="dark"] .settingsProTitle,
+[data-theme="dark"] .notifProTitle,
+[data-theme="dark"] .msgUltraTitle,
+[data-theme="dark"] .planPremiumHeader h1,
+[data-theme="dark"] .progressPrimeHeader h1,
+[data-theme="dark"] .libraryPrimeHeader h1,
+[data-theme="dark"] .gamiPrimeHeader h1,
+[data-theme="dark"] .theraPlanPrimeHeader h1,
+[data-theme="dark"] .theraChallengeHeader h1,
+[data-theme="dark"] .exercisePrimeHeader h1,
+[data-theme="dark"] .mediaStudioHero h1,
+[data-theme="dark"] .patientProgressHero h1,
+[data-theme="dark"] .familyDashHeroContent h1,
+[data-theme="dark"] .legalHero h1 {
+  color: #f8fafc !important;
+}
+
+/* textos secundários */
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] label,
+[data-theme="dark"] .pageSubtitle,
+[data-theme="dark"] .dashboardSubtitle,
+[data-theme="dark"] .dashPrimeSubtitle,
+[data-theme="dark"] .profileProSubtitle,
+[data-theme="dark"] .settingsProSubtitle,
+[data-theme="dark"] .notifProSubtitle,
+[data-theme="dark"] .msgUltraSubtitle,
+[data-theme="dark"] .theraMutedText,
+[data-theme="dark"] .familyHeroText,
+[data-theme="dark"] .libraryPrimeDescription,
+[data-theme="dark"] .progressPrimeHeader p,
+[data-theme="dark"] .planPremiumHeader p,
+[data-theme="dark"] .legalHero p,
+[data-theme="dark"] .legalCard p {
+  color: #cbd5e1 !important;
+}
+
+/* cartões / painéis */
+[data-theme="dark"] .card,
+[data-theme="dark"] .dashboardCard,
+[data-theme="dark"] .dashboardActionCard,
+[data-theme="dark"] .dashPrimeHeroLeft,
+[data-theme="dark"] .dashPrimeHeroRight,
+[data-theme="dark"] .dashPrimePanelCard,
+[data-theme="dark"] .dashPrimeActionCard,
+[data-theme="dark"] .profileCard,
+[data-theme="dark"] .profileProHeroMain,
+[data-theme="dark"] .profileProIdentityCard,
+[data-theme="dark"] .profileProCard,
+[data-theme="dark"] .profileProEditCard,
+[data-theme="dark"] .settingsProHeroMain,
+[data-theme="dark"] .settingsProCard,
+[data-theme="dark"] .notifProHeroMain,
+[data-theme="dark"] .notifProSummaryCard,
+[data-theme="dark"] .notifProPanel,
+[data-theme="dark"] .msgUltraHeroMain,
+[data-theme="dark"] .msgUltraHeroPanel,
+[data-theme="dark"] .msgUltraSidebar,
+[data-theme="dark"] .msgUltraChat,
+[data-theme="dark"] .planPremiumStat,
+[data-theme="dark"] .planPremiumExercise,
+[data-theme="dark"] .planPremiumSummary,
+[data-theme="dark"] .planPremiumProgressCard,
+[data-theme="dark"] .progressPrimeStat,
+[data-theme="dark"] .progressPrimeForm,
+[data-theme="dark"] .progressPrimeWellbeing,
+[data-theme="dark"] .progressPrimeWeek,
+[data-theme="dark"] .progressPrimeRecent,
+[data-theme="dark"] .libraryPrimeStat,
+[data-theme="dark"] .libraryPrimeExplorer,
+[data-theme="dark"] .libraryPrimeResource,
+[data-theme="dark"] .libraryPrimeNote,
+[data-theme="dark"] .gamiPrimeStat,
+[data-theme="dark"] .gamiPrimeCard,
+[data-theme="dark"] .gamiPrimeBadge,
+[data-theme="dark"] .gamiPrimeChallenge,
+[data-theme="dark"] .gamiPrimeReward,
+[data-theme="dark"] .gamiPrimeBadgeProgress,
+[data-theme="dark"] .theraPlanPrimeCard,
+[data-theme="dark"] .theraChallengeCard,
+[data-theme="dark"] .exercisePrimeStat,
+[data-theme="dark"] .exercisePrimeCard,
+[data-theme="dark"] .exercisePrimeListCard,
+[data-theme="dark"] .mediaStudioHeroContent,
+[data-theme="dark"] .mediaStudioEditor,
+[data-theme="dark"] .mediaStudioSearchCard,
+[data-theme="dark"] .mediaStudioResource,
+[data-theme="dark"] .patientProgressHero > div:first-child,
+[data-theme="dark"] .patientProgressControlCard,
+[data-theme="dark"] .patientProgressClinicalCard,
+[data-theme="dark"] .patientProgressPanel,
+[data-theme="dark"] .patientProgressRecords,
+[data-theme="dark"] .familyDashHeroContent,
+[data-theme="dark"] .familyDashCard,
+[data-theme="dark"] .familyDashProgressCard,
+[data-theme="dark"] .familyDashPrivacyCard,
+[data-theme="dark"] .familyDashStats div,
+[data-theme="dark"] .familyDashActionCard,
+[data-theme="dark"] .familyCard,
+[data-theme="dark"] .familyHeroCard,
+[data-theme="dark"] .legalCard,
+[data-theme="dark"] .legalHero {
+  background: #171a25 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* caixas internas */
+[data-theme="dark"] .profileProInfoItem,
+[data-theme="dark"] .settingsProInfoItem,
+[data-theme="dark"] .settingsProReminderBox,
+[data-theme="dark"] .settingsPasswordForm,
+[data-theme="dark"] .dashPrimeKpiCard,
+[data-theme="dark"] .dashPrimeSummaryBox,
+[data-theme="dark"] .dashPrimeMetricMini,
+[data-theme="dark"] .dashPrimeScoreBlock,
+[data-theme="dark"] .dashPrimeMessageBox,
+[data-theme="dark"] .familyInfoItem,
+[data-theme="dark"] .familyDashInfoList div,
+[data-theme="dark"] .familyDashAlertList div,
+[data-theme="dark"] .patientProgressInfoList div,
+[data-theme="dark"] .patientProgressRecordBody,
+[data-theme="dark"] .patientProgressNotes,
+[data-theme="dark"] .profileFamilyRequestItem,
+[data-theme="dark"] .profileFamilyEmpty,
+[data-theme="dark"] .profileProMiniNote,
+[data-theme="dark"] .theraPlanPrimeSummaryGrid div,
+[data-theme="dark"] .theraPlanPrimeDetailGrid div,
+[data-theme="dark"] .theraPlanPrimePlanItem,
+[data-theme="dark"] .theraPlanPrimeExerciseItem,
+[data-theme="dark"] .exercisePrimeSummaryList div {
+  background: #1f2330 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+/* inputs */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .input,
+[data-theme="dark"] .select,
+[data-theme="dark"] .messagesSearch,
+[data-theme="dark"] .messagesInput,
+[data-theme="dark"] .threadSearch,
+[data-theme="dark"] .chatInput {
+  background: #11131d !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #8b95a7 !important;
+}
+
+/* tabelas */
+[data-theme="dark"] table,
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] th {
+  background: #1f2330 !important;
+}
+
+/* botões ghost */
+[data-theme="dark"] .profileGhostLinkBtn,
+[data-theme="dark"] .settingsGhostBtn,
+[data-theme="dark"] .settingsGhostLinkBtn,
+[data-theme="dark"] .planGhostBtn,
+[data-theme="dark"] .therapistPlanGhostBtn,
+[data-theme="dark"] .exerciseCrudGhostBtn,
+[data-theme="dark"] .mediaCrudGhostBtn,
+[data-theme="dark"] .familyGhostLinkBtn,
+[data-theme="dark"] .notificationInlineBtn,
+[data-theme="dark"] .messagesActionBtn,
+[data-theme="dark"] .patientSubnavLink,
+[data-theme="dark"] .therapistSubnavLink,
+[data-theme="dark"] .profileProActionLink,
+[data-theme="dark"] .profileProActionButton,
+[data-theme="dark"] .settingsProActionList button,
+[data-theme="dark"] .settingsProActionList a,
+[data-theme="dark"] .gamiPrimeBadgeFilters button,
+[data-theme="dark"] .gamiPrimeChallengeFilters button {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+/* subnav ativo */
+[data-theme="dark"] .patientSubnav,
+[data-theme="dark"] .therapistSubnav {
+  background: #171a25 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .patientSubnavLinkActive,
+[data-theme="dark"] .therapistSubnavLinkActive,
+[data-theme="dark"] .patientSubnavButtonActive {
+  background: rgba(160, 70, 81, 0.35) !important;
+  color: #ffffff !important;
+  border-color: rgba(160, 70, 81, 0.8) !important;
+}
+
+/* dropdowns */
+[data-theme="dark"] .dropdownMenu,
+[data-theme="dark"] .dashboardDropdownMenu,
+[data-theme="dark"] .globalTopbarDropdown {
+  background: #171a25 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .dropdownMenu a,
+[data-theme="dark"] .dashboardDropdownMenu a,
+[data-theme="dark"] .dashboardDropdownMenu .dropdownLogoutBtn {
+  color: #f8fafc !important;
+}
+
+/* barras progresso */
+[data-theme="dark"] .progressBar,
+[data-theme="dark"] .dashboardProgressBar,
+[data-theme="dark"] .familyProgressBar,
+[data-theme="dark"] .planProgressBar,
+[data-theme="dark"] .gamiProgressBar,
+[data-theme="dark"] .progressWeekBarWrap,
+[data-theme="dark"] .therapistProgressBar,
+[data-theme="dark"] .dashPrimeBar,
+[data-theme="dark"] .progressPrimeWeekBar,
+[data-theme="dark"] .gamiPrimeProgressBar,
+[data-theme="dark"] .familyDashProgressBar {
+  background: #2a2f3c !important;
+}
+
+/* mensagens */
+[data-theme="dark"] .msgUltraChatBody,
+[data-theme="dark"] .messagesChatBody {
+  background: #11131d !important;
+}
+
+[data-theme="dark"] .msgUltraBubble.isOther,
+[data-theme="dark"] .messagesBubbleThem {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .msgUltraComposer,
+[data-theme="dark"] .messagesComposer {
+  background: #171a25 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* login */
+[data-theme="dark"] .loginPage {
+  background: #0f111a !important;
+}
+
+[data-theme="dark"] .loginCard {
+  background: #171a25 !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+[data-theme="dark"] .loginTitle {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .loginSubtitle,
+[data-theme="dark"] .loginOtpInfo {
+  color: #cbd5e1 !important;
+}
+
+/* alerts */
+[data-theme="dark"] .loginErrorBox,
+[data-theme="dark"] .settingsProError,
+[data-theme="dark"] .profileProError,
+[data-theme="dark"] .notifProError,
+[data-theme="dark"] .theraPlanPrimeError {
+  background: rgba(220, 38, 38, 0.14) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+[data-theme="dark"] .loginSuccessBox,
+[data-theme="dark"] .settingsProSuccess,
+[data-theme="dark"] .profileProSuccess,
+[data-theme="dark"] .gamiPrimeSuccess,
+[data-theme="dark"] .progressPrimeSuccess,
+[data-theme="dark"] .theraPlanPrimeSuccess {
+  background: rgba(34, 197, 94, 0.14) !important;
+  color: #bbf7d0 !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+/* páginas legais */
+[data-theme="dark"] .legalConsentBox {
+  background: #1f2330 !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .legalConsentBox a,
+[data-theme="dark"] .legalCard h2 {
+  color: #e3a7b0 !important;
+}
+
+/* Correção dark mode - card lembrete diário dashboard */
+[data-theme="dark"] .dashPrimeReminderCard {
+  background: #1f2330 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dashPrimeReminderHeader h4,
+[data-theme="dark"] .dashPrimeReminderHeader p {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dashPrimeBtnGhost {
+  background: #171a25 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+/* Correção dark mode - Messages */
+[data-theme="dark"] .msgUltraHeroMetric,
+[data-theme="dark"] .msgUltraThread,
+[data-theme="dark"] .msgUltraThread.isSelected,
+[data-theme="dark"] .msgUltraChatHeader,
+[data-theme="dark"] .msgUltraDaySeparator span {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .msgUltraThreadTop strong,
+[data-theme="dark"] .msgUltraThreadTop span,
+[data-theme="dark"] .msgUltraHeroMetric span,
+[data-theme="dark"] .msgUltraHeroMetric strong,
+[data-theme="dark"] .msgUltraChatIdentity h2,
+[data-theme="dark"] .msgUltraChatIdentity p,
+[data-theme="dark"] .msgUltraDaySeparator span {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .msgUltraHeaderBadge,
+[data-theme="dark"] .msgUltraHeaderBadgeLight,
+[data-theme="dark"] .msgUltraThreadStatus {
+  background: #2a2f3c !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .msgUltraSmallButton {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+/* Correção dark mode - composer mensagens */
+[data-theme="dark"] .msgUltraComposerBox,
+[data-theme="dark"] .msgUltraComposerFooter {
+  background: #1f2330 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .msgUltraComposerBox textarea {
+  background: #11131d !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .msgUltraComposerFooter > span,
+[data-theme="dark"] .msgUltraComposerActions span {
+  color: #cbd5e1 !important;
+}
+
+/* Correção dark mode - Notificações */
+[data-theme="dark"] .notifProQuickStat,
+[data-theme="dark"] .notifProItem,
+[data-theme="dark"] .notifProItem.isUnread {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .notifProQuickStat span,
+[data-theme="dark"] .notifProQuickStat strong,
+[data-theme="dark"] .notifProItemTitleRow h3,
+[data-theme="dark"] .notifProMessage,
+[data-theme="dark"] .notifProTime {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .notifProFilter,
+[data-theme="dark"] .notifProFilter strong,
+[data-theme="dark"] .notifProGroupTitle span,
+[data-theme="dark"] .notifProTag,
+[data-theme="dark"] .notifProActionBtn {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .notifProFilter.isActive {
+  background: rgba(160, 70, 81, 0.35) !important;
+  color: #ffffff !important;
+  border-color: rgba(160, 70, 81, 0.8) !important;
+}
+
+/* Correção dark mode - Perfil estado da conta */
+[data-theme="dark"] .profileProStatusBox {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .profileProStatusBox span,
+[data-theme="dark"] .profileProStatusBox strong {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - círculo resumo rápido */
+[data-theme="dark"] .planPremiumRing::before {
+  background: #1f2330 !important;
+}
+
+[data-theme="dark"] .planPremiumRing strong,
+[data-theme="dark"] .planPremiumRing span {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - Ligações familiares */
+[data-theme="dark"] .familyConnectIntro,
+[data-theme="dark"] .familyPrivacyCard {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .familyConnectIntro h3,
+[data-theme="dark"] .familyConnectIntro p,
+[data-theme="dark"] .familyPrivacyCard h3,
+[data-theme="dark"] .familyPrivacyCard p {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - caixas internas ligações familiares */
+[data-theme="dark"] .familyDashNote,
+[data-theme="dark"] .familyNoteBox,
+[data-theme="dark"] .familyCreateInfo,
+[data-theme="dark"] .familyInfoBox,
+[data-theme="dark"] .familyPrivacyBox {
+  background: #1f2330 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .familyDashNote *,
+[data-theme="dark"] .familyNoteBox *,
+[data-theme="dark"] .familyCreateInfo *,
+[data-theme="dark"] .familyInfoBox *,
+[data-theme="dark"] .familyPrivacyBox * {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - pills/badges claros no dashboard */
+[data-theme="dark"] .dashPrimeOverline,
+[data-theme="dark"] .dashPrimeStatus,
+[data-theme="dark"] .dashPrimeChip,
+[data-theme="dark"] .dashboardHeroBadge,
+[data-theme="dark"] .dashboardSmallTag {
+  background: #2a1f28 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+/* Correção dark mode - últimos badges e texto concluído */
+[data-theme="dark"] .dashPrimeActionPill,
+[data-theme="dark"] .dashboardActionPill,
+[data-theme="dark"] .dashboardActionTag {
+  background: #2a1f28 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+[data-theme="dark"] .dashPrimeBigLabel,
+[data-theme="dark"] .dashboardProgressLabel {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - Perfil badges e nome */
+[data-theme="dark"] .profileProRolePill,
+[data-theme="dark"] .profileProSoftBadge,
+[data-theme="dark"] .profileProCardHeader span {
+  background: #2a1f28 !important;
+  color: #f8fafc !important;
+  border-color: rgba(160, 70, 81, 0.55) !important;
+}
+
+[data-theme="dark"] .profileProIdentityName {
+  color: #f8fafc !important;
+}
+
+/* Correção dark mode - ícone calendário */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.9;
+}
+
+/* Correção dark mode - dropdown utilizador */
+[data-theme="dark"] .globalTopbarDropdown,
+[data-theme="dark"] .globalTopbarDropdown .dropdownMenu,
+[data-theme="dark"] .globalTopbarDropdown a,
+[data-theme="dark"] .globalTopbarDropdown button {
+  background: #171a25 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .globalTopbarDropdown a:hover,
+[data-theme="dark"] .globalTopbarDropdown button:hover {
+  background: #1f2330 !important;
+}
+
+.settingsDeleteOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(15, 17, 26, 0.72);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.settingsDeleteModal {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 34px;
+  box-shadow: 0 28px 80px rgba(16, 24, 40, 0.22);
+  border: 1px solid rgba(128, 54, 72, 0.16);
+}
+
+.settingsDeleteModal h2 {
+  margin: 0 0 12px;
+  color: #111827;
+  font-size: 28px;
+}
+
+.settingsDeleteModal p {
+  margin: 0;
+  color: #667085;
+  line-height: 1.6;
+  font-weight: 650;
+}
+
+.settingsDeleteActions {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.settingsDeleteCancel,
+.settingsDeleteConfirm {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.settingsDeleteCancel {
+  background: #ffffff;
+  color: #803648;
+  border: 1px solid rgba(128, 54, 72, 0.22);
+}
+
+.settingsDeleteConfirm {
+  background: linear-gradient(135deg, #803648, #9b4d5c);
+  color: #ffffff;
+  border: 0;
+}
+
+[data-theme="dark"] .settingsDeleteModal {
+  background: #171a25;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .settingsDeleteModal h2 {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .settingsDeleteModal p {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .settingsDeleteCancel {
+  background: #1f2330;
+  color: #f8fafc;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* SETTINGS — manter botões danger consistentes no hover (modo claro) */
+.settingsProActionList .danger:hover,
+.settingsProDeleteBtn:hover,
+.settingsProDangerBtn:hover,
+.settingsProCard button.danger:hover {
+  background: #803648 !important;
+  color: #ffffff !important;
+  border-color: #803648 !important;
+}
+
+/* versão disabled para eliminar conta */
+.settingsProDeleteBtn:disabled,
+.settingsProDeleteBtn:disabled:hover {
+  background: #e7dde0 !important;
+  color: #ffffff !important;
+  border-color: #e7dde0 !important;
+  cursor: not-allowed;
+}
+
+/* terminar sessão */
+.settingsProActionList .danger {
+  background: #803648;
+  color: #ffffff;
+  border: 1px solid #803648;
+}
+
+.theraPlanPrimeHeaderRight {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+  flex: 0 0 auto;
+}
+
+.theraPlanMiniReminderCard {
+  width: 520px;
+  max-width: 520px;
+  border-radius: 28px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(139, 47, 70, 0.12);
+  box-shadow: 0 24px 70px rgba(16, 24, 40, 0.08);
+}
+
+.theraPlanMiniReminderTop {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.theraPlanMiniReminderCounter {
+  width: 74px;
+  height: 74px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #8b2f46, #a94f62);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  font-weight: 950;
+  flex: 0 0 auto;
+  box-shadow: 0 18px 36px rgba(139, 47, 70, 0.22);
+}
+
+.theraPlanMiniReminderCard h3 {
+  margin: 0;
+  color: #101828;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.theraPlanMiniReminderCard p {
+  margin: 8px 0 0;
+  color: #667085;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.theraPlanMiniReminderButtons {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.theraPlanMiniBtn {
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 15px;
+  text-decoration: none;
+  font-weight: 950;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.18s ease;
+}
+
+.theraPlanMiniBtnPrimary {
+  background: linear-gradient(135deg, #8b2f46, #a94f62);
+  color: white;
+  box-shadow: 0 16px 30px rgba(139, 47, 70, 0.2);
+}
+
+.theraPlanMiniBtnGhost {
+  background: white;
+  color: #8b2f46;
+  border: 1px solid rgba(139, 47, 70, 0.22);
+}
+
+.theraPlanMiniBtn:hover {
+  transform: translateY(-2px);
+}
+
+[data-theme="dark"] .theraPlanMiniReminderCard,
+:root[data-theme="dark"] .theraPlanMiniReminderCard {
+  background: rgba(17, 24, 39, 0.82);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .theraPlanMiniReminderCard h3,
+:root[data-theme="dark"] .theraPlanMiniReminderCard h3 {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .theraPlanMiniReminderCard p,
+:root[data-theme="dark"] .theraPlanMiniReminderCard p {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .theraPlanMiniBtnGhost,
+:root[data-theme="dark"] .theraPlanMiniBtnGhost {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f9fafb;
+}
+
+@media (max-width: 1300px) {
+  .theraPlanPrimeHeader {
+    flex-direction: column;
+  }
+
+  .theraPlanPrimeHeaderRight {
+    width: 100%;
+  }
+
+  .theraPlanMiniReminderCard {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .theraPlanPrimeHeaderRight {
+    flex-direction: column;
+  }
+
+  .theraPlanMiniReminderTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .theraPlanMiniReminderButtons,
+  .theraPlanMiniBtn {
+    width: 100%;
+  }
+}
+
+.libraryResourceModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(5, 7, 14, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.libraryResourceModal {
+  width: min(720px, 100%);
+  background: var(--card, #fff);
+  color: var(--text, #101828);
+  border-radius: 32px;
+  padding: 34px;
+  position: relative;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+}
+
+.libraryResourceModalClose {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  border: none;
+  background: #f2e9ec;
+  color: #8b3f4f;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.libraryResourceModalTag {
+  display: inline-flex;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #f2e9ec;
+  color: #8b3f4f;
+  font-weight: 900;
+  margin-bottom: 18px;
+}
+
+.libraryResourceModal h2 {
+  margin: 0 0 20px;
+  font-size: 34px;
+}
+
+.libraryResourceModalInfo {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(139, 63, 79, 0.18);
+  border-bottom: 1px solid rgba(139, 63, 79, 0.18);
+  margin-bottom: 20px;
+}
+
+.libraryResourceModalInfo span {
+  color: #667085;
+  font-weight: 800;
+}
+
+.libraryResourceModalInfo strong {
+  font-weight: 900;
+}
+
+.libraryResourceModal p {
+  color: #667085;
+  font-weight: 700;
+  line-height: 1.7;
+  font-size: 18px;
+}
+
+[data-theme="dark"] .libraryResourceModal,
+:root[data-theme="dark"] .libraryResourceModal {
+  background: #171b26;
+  color: #fff;
+}
+
+[data-theme="dark"] .libraryResourceModal p,
+[data-theme="dark"] .libraryResourceModalInfo span,
+:root[data-theme="dark"] .libraryResourceModal p,
+:root[data-theme="dark"] .libraryResourceModalInfo span {
+  color: #cbd5e1;
+}

@@ -575,7 +575,11 @@ const progressPercent = useMemo(() => {
               </section>
 
               <section className="progressPrimeMainGrid">
-                <form className="progressPrimeForm" onSubmit={handleSubmit}>
+                <form
+  id="register-exercise"
+  className="progressPrimeForm"
+  onSubmit={handleSubmit}
+>
                   <div className="progressPrimeFormHeader">
                     <div>
                       <h2>{text.registerTitle}</h2>
@@ -812,10 +816,17 @@ const progressPercent = useMemo(() => {
                   <h3>{text.nextStep}</h3>
                   <p>{text.nextStepText}</p>
 
-                  <Link to="/patient/plan">
-                    {text.seePlan}
-                    <span>→</span>
-                  </Link>
+                  <Link
+  to="/patient/plan"
+  onClick={() => {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 120);
+  }}
+>
+  {text.seePlan}
+  <span>→</span>
+</Link>
                 </div>
               </section>
             </>

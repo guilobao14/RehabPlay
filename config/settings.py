@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'sessions.apps.SessionsConfig',
     'reports',
     'corsheaders',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

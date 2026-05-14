@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django.contrib.auth.password_validation import validate_password
 
+
 from .models import Profile, AccountSettings
 from .serializers import (
     MyProfileSerializer,
@@ -138,6 +139,17 @@ class MeView(APIView):
                 "display_name": profile.display_name if profile else request.user.username,
                 "two_factor_enabled": has_2fa,
             }
+        )
+
+    def delete(self, request):
+        user = request.user
+        logout(request)
+        user.delete()
+
+
+        return Response(
+            {"detail": "Conta eliminada com sucesso."},
+            status=200,
         )
 
 class MyProfileView(APIView):

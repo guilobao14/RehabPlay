@@ -72,8 +72,7 @@ const familyLinksText = {
     hello: "Hi",
     familyUser: "Family",
     title: "Family Links",
-    subtitle:
-      "Send patient link requests and view authorized progress only.",
+    subtitle: "Send patient link requests and view authorized progress only.",
     loadingTitle: "Loading...",
     loadingText: "Fetching available family links.",
     errorText: "Error loading family links.",
@@ -99,8 +98,7 @@ const familyLinksText = {
     confirmDelete: "Do you really want to remove this link?",
 
     linksList: "Requests and links list",
-    linksSub:
-      "Check the status of family links associated with your profile.",
+    linksSub: "Check the status of family links associated with your profile.",
     noLinks: "No links",
     noLinksText: "You do not currently have any requests or family links.",
 
@@ -259,11 +257,17 @@ export default function FamilyLinksPage() {
     }
   }
 
+  function goToTop() {
+  setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, 100);
+}
+
   return (
     <div className="appPage">
       <div className="appShellMockup">
         <div className="topbar">
-          <Link to="/dashboard" className="brandLink">
+          <Link to="/family" className="brandLink" onClick={goToTop}>
             RehabPlay
           </Link>
 
@@ -373,7 +377,9 @@ export default function FamilyLinksPage() {
                       <div key={link.id} className="familyCard">
                         <div className="familyCardHeader">
                           <h3 className="familyCardTitle">{link.patientName}</h3>
-                          <span className={`familySmallTag familyStatus-${status.toLowerCase()}`}>
+                          <span
+                            className={`familySmallTag familyStatus-${status.toLowerCase()}`}
+                          >
                             {getStatusLabel(status, text)}
                           </span>
                         </div>
@@ -415,11 +421,12 @@ export default function FamilyLinksPage() {
                         <div className="familyLinkActions">
                           {isApproved && link.canViewProgress && (
                             <Link
-                              to="/family/progress"
-                              className="familyGhostLinkBtn"
-                            >
-                              {text.viewProgress}
-                            </Link>
+  to="/family/progress"
+  className="familyGhostLinkBtn"
+  onClick={goToTop}
+>
+  {text.viewProgress}
+</Link>
                           )}
 
                           <button
@@ -444,11 +451,11 @@ export default function FamilyLinksPage() {
                   </div>
 
                   <div className="familyQuickActions">
-                    <Link to="/family" className="familyGhostLinkBtn">
+                    <Link to="/family" className="familyGhostLinkBtn" onClick={goToTop}>
                       {text.backDashboard}
                     </Link>
 
-                    <Link to="/family/progress" className="familyGhostLinkBtn">
+                    <Link to="/family/progress" className="familyGhostLinkBtn" onClick={goToTop}>
                       {text.consultProgress}
                     </Link>
                   </div>
